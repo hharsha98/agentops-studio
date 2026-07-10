@@ -817,7 +817,8 @@ h1 {
 .advance-panel {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 16px;
   padding: 16px;
   border: 1px solid var(--line);

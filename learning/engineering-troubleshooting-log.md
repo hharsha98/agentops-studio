@@ -798,3 +798,62 @@ The local API smoke check confirmed `/ready` returns the database readiness payl
 
 ### How To Explain It
 I separated process health from traffic readiness. `/health` tells the orchestrator the API process is alive, while `/ready` proves the API can reach its database. That is important in Kubernetes because a pod can be running but still not ready to handle requests.
+
+---
+
+## Incident 017: Run execution needed worker-style job state
+
+### Incident
+Runs could be advanced manually from the run board, but there was no job object representing asynchronous worker execution.
+
+### Why It Matters
+Production agent systems usually do not perform every long-running action inside the web request. They enqueue work, process it in a worker, and expose job state so the UI can show whether work is queued, running, waiting for approval, completed, or failed.
+
+### Symptoms
+The run board had `Advance run`, but that represented a direct synchronous action instead of a queued worker process.
+
+### Root Cause
+The first orchestration slices focused on making state transitions visible. The next step was to introduce a worker-job contract without pulling in a full Redis worker yet.
+
+### Debugging Steps
+We wrote failing tests for:
+
+```bash
+POST /runs/{run_id}/jobs
+GET /jobs/{job_id}
+POST /jobs/{job_id}/tick
+```
+
+The tests first failed with `404 Not Found`, proving no worker job API existed. We then added an in-memory worker queue that wraps the existing run advancement logic.
+
+### Fix
+We added:
+
+- Worker job schema.
+- In-memory worker queue service.
+- Job creation endpoint.
+- Job detail endpoint.
+- Worker tick endpoint.
+- Run-board controls for queueing a job and running a worker step.
+
+The worker pauses when a run reaches human approval, which mirrors real agent systems where a background job should not bypass approval gates.
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+Smoke checks confirmed the worker API advances a run and the run board renders worker controls.
+
+### How To Explain It
+I introduced a worker-job contract before adding a real Redis worker. The API can now queue a run, process it one step at a time, and expose job state to the UI. This is a production-oriented pattern because long-running agent execution should be observable and decoupled from normal web requests.

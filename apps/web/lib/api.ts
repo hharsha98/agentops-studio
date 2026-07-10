@@ -146,6 +146,18 @@ export type BenchmarkReport = {
   run_scores: RunBenchmarkScore[];
 };
 
+export type WorkerJobStatus = "queued" | "running" | "waiting_for_approval" | "completed" | "failed";
+
+export type WorkerJob = {
+  id: string;
+  run_id: string;
+  status: WorkerJobStatus;
+  steps_completed: number;
+  message: string;
+  created_at: string;
+  updated_at: string;
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 const FALLBACK_RUNS = replayData.runs as AgentRun[];
 const FALLBACK_WORKFLOWS = replayData.workflows as WorkflowTemplate[];
@@ -361,4 +373,12 @@ export async function getBenchmarks(): Promise<BenchmarkReport> {
     categories,
     run_scores
   };
+}
+
+export async function createWorkerJob(runId: string): Promise<WorkerJob | null> {
+  return postJson<WorkerJob>(`/runs/${runId}/jobs`, {});
+}
+
+export async function tickWorkerJob(jobId: string): Promise<WorkerJob | null> {
+  return postJson<WorkerJob>(`/jobs/${jobId}/tick`, {});
 }

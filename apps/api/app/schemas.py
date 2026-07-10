@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 
 RunStatus = Literal["backlog", "running", "approval", "done", "failed"]
+WorkerJobStatus = Literal["queued", "running", "waiting_for_approval", "completed", "failed"]
 Priority = Literal["low", "medium", "high"]
 RiskLevel = Literal["low", "medium", "high"]
 
@@ -170,3 +171,13 @@ class BenchmarkReport(BaseModel):
     average_overall_score: int
     categories: list[BenchmarkCategory]
     run_scores: list[RunBenchmarkScore]
+
+
+class WorkerJob(BaseModel):
+    id: str
+    run_id: str
+    status: WorkerJobStatus
+    steps_completed: int = 0
+    message: str
+    created_at: str
+    updated_at: str

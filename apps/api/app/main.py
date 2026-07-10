@@ -13,8 +13,10 @@ from .schemas import (
     KnowledgeSearchResponse,
     ReplayRunRequest,
     RunListResponse,
+    WorkerJob,
     WorkflowListResponse,
 )
+from .worker_queue import create_worker_job, get_worker_job, tick_worker_job
 
 app = FastAPI(title=settings.app_name)
 
@@ -85,6 +87,30 @@ def approve_replay_run(run_id: str) -> AgentRun:
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return run
+
+
+@app.post("/runs/{run_id}/jobs", response_model=WorkerJob, status_code=201)
+def create_run_worker_job(run_id: str) -> WorkerJob:
+    job = create_worker_job(run_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return job
+
+
+@app.get("/jobs/{job_id}", response_model=WorkerJob)
+def worker_job_detail(job_id: str) -> WorkerJob:
+    job = get_worker_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Worker job not found")
+    return job
+
+
+@app.post("/jobs/{job_id}/tick", response_model=WorkerJob)
+def tick_run_worker_job(job_id: str) -> WorkerJob:
+    job = tick_worker_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Worker job not found")
+    return job
 
 
 @app.get("/workflows", response_model=WorkflowListResponse)

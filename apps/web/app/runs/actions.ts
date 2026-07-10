@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { advanceRun, approveRun } from "@/lib/api";
+import { advanceRun, approveRun, createWorkerJob, tickWorkerJob } from "@/lib/api";
 
 export type AdvanceActionState = {
   status: "idle" | "success" | "error";
@@ -10,6 +10,13 @@ export type AdvanceActionState = {
 };
 
 export type ApprovalActionState = AdvanceActionState;
+
+export type WorkerActionState = {
+  status: "idle" | "success" | "error";
+  message: string;
+  jobId?: string;
+  jobStatus?: string;
+};
 
 export async function advanceRunAction(
   _previousState: AdvanceActionState,
@@ -84,5 +91,71 @@ export async function approveRunAction(
   return {
     status: "success",
     message: "Approval completed and the workflow outcome was released."
+  };
+}
+
+export async function createWorkerJobAction(
+  _previousState: WorkerActionState,
+  formData: FormData
+): Promise<WorkerActionState> {
+  const runId = String(formData.get("runId") ?? "").trim();
+
+  if (!runId) {
+    return {
+      status: "error",
+      message: "Choose a run before queueing a worker job."
+    };
+  }
+
+  const job = await createWorkerJob(runId);
+
+  if (!job) {
+    return {
+      status: "error",
+      message: "The worker job could not be queued. Check that the API service is running."
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/runs");
+
+  return {
+    status: "success",
+    message: job.message,
+    jobId: job.id,
+    jobStatus: job.status
+  };
+}
+
+export async function tickWorkerJobAction(
+  previousState: WorkerActionState,
+  formData: FormData
+): Promise<WorkerActionState> {
+  const jobId = String(formData.get("jobId") ?? previousState.jobId ?? "").trim();
+
+  if (!jobId) {
+    return {
+      status: "error",
+      message: "Queue a worker job before running a worker step."
+    };
+  }
+
+  const job = await tickWorkerJob(jobId);
+
+  if (!job) {
+    return {
+      status: "error",
+      message: "The worker job could not be found."
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/runs");
+
+  return {
+    status: "success",
+    message: job.message,
+    jobId: job.id,
+    jobStatus: job.status
   };
 }
