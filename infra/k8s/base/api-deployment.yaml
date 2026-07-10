@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentops-api
+  namespace: agentops-studio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentops-api
+  template:
+    metadata:
+      labels:
+        app: agentops-api
+    spec:
+      containers:
+        - name: api
+          image: agentops-api:local
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MODEL_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: agentops-secrets
+                  key: model-base-url
+            - name: MODEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: agentops-secrets
+                  key: model-api-key
+
