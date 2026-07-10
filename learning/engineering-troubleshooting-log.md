@@ -857,3 +857,35 @@ Smoke checks confirmed the worker API advances a run and the run board renders w
 
 ### How To Explain It
 I introduced a worker-job contract before adding a real Redis worker. The API can now queue a run, process it one step at a time, and expose job state to the UI. This is a production-oriented pattern because long-running agent execution should be observable and decoupled from normal web requests.
+
+---
+
+## Incident 018: Worker jobs disappeared after process restarts
+
+### Incident
+Worker jobs were stored in a Python dictionary, so restarting the API process erased every queued and running job.
+
+### Why It Matters
+Kubernetes regularly replaces pods during deployments, scaling, and failure recovery. Process memory belongs to one pod and is not durable, so operational state must live in a shared database that every replacement pod can reconnect to.
+
+### Symptoms
+A job could be created and advanced while one API process stayed alive, but a new process could not retrieve the job ID or its progress.
+
+### Root Cause
+The first worker slice intentionally established the API contract with an in-memory store. That store could not support multiple API replicas or survive restarts.
+
+### Debugging Steps
+We wrote tests that created a run and worker job in a temporary SQLite database, then constructed a new repository instance using the same database file. The tests initially failed because worker functions did not accept a repository and only read the process-local dictionary.
+
+### Fix
+We added a `worker_jobs` table and repository methods for saving and retrieving job payloads. Worker creation and every state transition now write to the database, and all run advancement uses the same injected repository.
+
+### Verification
+The persistence tests prove that both a newly queued job and its updated progress can be retrieved through a fresh repository instance.
+
+```bash
+pytest -q tests/test_worker_job_repository.py tests/test_worker_jobs.py
+```
+
+### How To Explain It
+The database is the durable source of truth for job status. Redis will be used next as a fast delivery channel that tells workers which job to process, but Redis does not replace the database record. This separation lets jobs survive pod restarts while workers scale independently.

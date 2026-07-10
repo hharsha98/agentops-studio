@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import JSON, DateTime, Integer, String, create_engine, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
-from .schemas import AgentRun
+from .schemas import AgentRun, WorkerJob
 
 
 class Base(DeclarativeBase):
@@ -22,6 +22,17 @@ class RunRecord(Base):
     sort_index: Mapped[int] = mapped_column(Integer, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class WorkerJobRecord(Base):
+    __tablename__ = "worker_jobs"
+
+    id: Mapped[str] = mapped_column(String(160), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(160), index=True)
+    status: Mapped[str] = mapped_column(String(40), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     payload: Mapped[dict[str, Any]] = mapped_column(JSON)
 
 
@@ -98,6 +109,37 @@ class RunRepository:
 
             session.commit()
             return run
+
+    def get_worker_job(self, job_id: str) -> WorkerJob | None:
+        with self.session_factory() as session:
+            record = session.get(WorkerJobRecord, job_id)
+            if record is None:
+                return None
+            return WorkerJob.model_validate(record.payload)
+
+    def save_worker_job(self, job: WorkerJob) -> WorkerJob:
+        with self.session_factory() as session:
+            record = session.get(WorkerJobRecord, job.id)
+            now = datetime.now(UTC)
+
+            if record is None:
+                record = WorkerJobRecord(
+                    id=job.id,
+                    run_id=job.run_id,
+                    status=job.status,
+                    created_at=now,
+                    updated_at=now,
+                    payload=job.model_dump(mode="json"),
+                )
+                session.add(record)
+            else:
+                record.run_id = job.run_id
+                record.status = job.status
+                record.updated_at = now
+                record.payload = job.model_dump(mode="json")
+
+            session.commit()
+            return job
 
     @staticmethod
     def _next_sort_index(session: Session) -> int:
