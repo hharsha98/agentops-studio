@@ -889,3 +889,100 @@ pytest -q tests/test_worker_job_repository.py tests/test_worker_jobs.py
 
 ### How To Explain It
 The database is the durable source of truth for job status. Redis will be used next as a fast delivery channel that tells workers which job to process, but Redis does not replace the database record. This separation lets jobs survive pod restarts while workers scale independently.
+
+---
+
+## Incident 019: Worker execution still depended on HTTP requests
+
+### Incident
+Worker jobs were durable, but a user still had to call a public `tick` endpoint for every execution step. Redis existed in Docker Compose but was not connected to the API or a worker process.
+
+### Why It Matters
+Long-running agent work should continue after the browser closes and should scale separately from web traffic. A queue lets the API accept work quickly while background worker replicas process it independently.
+
+### Symptoms
+The run board displayed `Run worker step`, there was no worker container or Kubernetes worker Deployment, and Redis carried no jobs.
+
+### Root Cause
+The earlier slice established job state and persistence before introducing an external queue. Execution was still synchronous and controlled by the UI.
+
+### Debugging Steps
+We wrote failing tests for four production behaviors:
+
+- Creating a job dispatches only its database ID.
+- One worker atomically claims a queued job.
+- A duplicate queue delivery cannot execute the same run twice.
+- Transient failures retry, but persistent failures stop after three attempts.
+
+The tests initially failed because there was no dispatcher module, no worker entrypoint, no atomic claim method, and the public tick route was still active.
+
+### Fix
+We added Redis Queue (RQ) dispatch, a separate worker entrypoint, an atomic database claim, bounded retries, and durable failure details. The API now persists the job before publishing its ID, and it returns `503 Service Unavailable` if Redis cannot accept work. The manual tick route and UI control were replaced by job-status refresh.
+
+Docker Compose now builds one Python image for both the API and worker. Kubernetes uses the same image in separate Deployments so each role can scale independently.
+
+### Verification
+
+```bash
+pytest -q
+npm run typecheck:web
+npm run lint:web
+docker compose config --quiet
+```
+
+### Remaining Production Risk
+Database commit and Redis publish are still two separate operations. If the API process crashes between them, the database retains a queued job but Redis may never receive it. A later transactional-outbox or queued-job reconciliation process should automatically redispatch these orphaned jobs.
+
+### How To Explain It
+Postgres owns durable job state, Redis carries lightweight job IDs, and RQ workers perform execution outside HTTP requests. An atomic `queued` to `running` claim makes at-least-once queue delivery safe, while bounded retries prevent permanent failures from looping forever. I can also explain the remaining commit-to-publish gap and how an outbox pattern would close it.
+
+---
+
+## Incident 020: Containerized worker could not find demo data
+
+### Incident
+The API and worker image built successfully, but the first API container exited and the next RQ job failed because replay data was resolved from the source-tree depth.
+
+### Why It Matters
+Container filesystems and installed Python packages do not have the same directory layout as a development checkout. Runtime assets need an explicit, portable location instead of assumptions about how many parent directories exist.
+
+### Symptoms
+The first API startup failed with:
+
+```text
+IndexError: 3
+```
+
+After copying the repository-level `demo-data` directory into the image, the API started, but RQ's child process imported the installed wheel from `site-packages` and failed with:
+
+```text
+FileNotFoundError: /usr/local/lib/demo-data/replay-runs.json
+```
+
+### Root Cause
+Both replay and knowledge loaders used `Path(__file__).resolve().parents[3]`. That happened to point at the repository root during local development, but it pointed somewhere else inside the built image and RQ child process.
+
+### Debugging Steps
+We inspected container logs at each boundary:
+
+1. API import failed before database initialization, proving the first break was asset resolution.
+2. After preserving the source-tree layout, API readiness passed and Redis consumed the job.
+3. Worker logs showed RQ imported `app.worker` from `site-packages`, proving the child process had a different module path from the API process.
+4. Redis queue length returned zero, confirming delivery succeeded and execution failed after dequeue.
+
+### Fix
+We added one `demo_data_path()` resolver shared by replay and knowledge loading. Local development searches parent directories for `demo-data`; containers set `DEMO_DATA_DIR=/workspace/demo-data` explicitly in the image. The Docker build copies the assets to that location, so API and worker child processes use the same path.
+
+### Verification
+The containerized smoke test created a run through the API, dispatched its job through Redis, and observed the worker persist this final state:
+
+```text
+job_status=waiting_for_approval
+steps_completed=3
+attempts=1
+run_status=approval
+trace_events=7
+```
+
+### How To Explain It
+I traced a container-only failure across API import, Redis delivery, RQ child-process import, and database state. The fix replaced a source-layout assumption with explicit runtime configuration, which is the portable pattern for Docker and Kubernetes assets.

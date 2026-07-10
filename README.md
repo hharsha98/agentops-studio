@@ -79,11 +79,15 @@ DATABASE_URL=sqlite:///./agentops-studio.db
 
 SQLite is a lightweight file database that is useful for simple local development. Docker Compose uses Postgres instead, which is closer to the production database shape used in managed Kubernetes deployments.
 
+Background run execution uses Redis Queue (RQ). Postgres stores the durable job status, Redis delivers job IDs to workers, and a separate worker process advances each run until it reaches human approval, completion, or failure. Redis is a delivery channel, not the source of truth.
+
 Run both with Docker Compose:
 
 ```bash
 docker compose up --build
 ```
+
+The Compose stack starts separate `api` and `worker` containers from the same Python image. This mirrors Kubernetes, where the API and worker can scale independently.
 
 ## Deployment Strategy
 

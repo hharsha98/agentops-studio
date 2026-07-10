@@ -14,8 +14,10 @@ AgentOps Studio is split into clear units:
 
 1. User chooses a business workflow.
 2. Frontend starts a run through the API.
-3. Backend orchestrates agents with LangGraph.
-4. Agents retrieve company knowledge, research the web, and call approved tools.
-5. Outputs are stored as artifacts with citations and traces.
-6. Human approval is required before private external actions.
-7. Public demo users only see replay and simulated actions.
+3. The API persists a worker job in Postgres and sends only its job ID to Redis.
+4. A separate worker atomically claims the job and advances the multi-agent run.
+5. Agents retrieve company knowledge, research the web, and call approved tools.
+6. Outputs are stored as artifacts with citations and traces.
+7. Human approval pauses worker execution before private external actions.
+8. Duplicate Redis deliveries are ignored after the database claim succeeds once.
+9. Public demo users only see replay and simulated actions.

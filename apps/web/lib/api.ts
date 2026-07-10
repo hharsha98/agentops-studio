@@ -153,9 +153,13 @@ export type WorkerJob = {
   run_id: string;
   status: WorkerJobStatus;
   steps_completed: number;
+  attempts: number;
   message: string;
   created_at: string;
   updated_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  error: string | null;
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -379,6 +383,6 @@ export async function createWorkerJob(runId: string): Promise<WorkerJob | null> 
   return postJson<WorkerJob>(`/runs/${runId}/jobs`, {});
 }
 
-export async function tickWorkerJob(jobId: string): Promise<WorkerJob | null> {
-  return postJson<WorkerJob>(`/jobs/${jobId}/tick`, {});
+export async function getWorkerJob(jobId: string): Promise<WorkerJob | null> {
+  return fetchJson<WorkerJob>(`/jobs/${jobId}`);
 }

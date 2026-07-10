@@ -1,15 +1,15 @@
 import json
 from copy import deepcopy
 from datetime import UTC, datetime
-from pathlib import Path
 from uuid import uuid4
 
 from .config import settings
+from .data_files import demo_data_path
 from .repository import RunRepository
 from .schemas import AgentRun, ReplayRunRequest, RunArtifact, RunSummary, RunTraceEvent, WorkflowTemplate
 
 
-DATA_PATH = Path(__file__).resolve().parents[3] / "demo-data" / "replay-runs.json"
+DATA_PATH = demo_data_path("replay-runs.json")
 
 
 def _load_seed_data() -> tuple[list[WorkflowTemplate], list[AgentRun]]:

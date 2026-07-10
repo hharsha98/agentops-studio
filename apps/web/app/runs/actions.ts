@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { advanceRun, approveRun, createWorkerJob, tickWorkerJob } from "@/lib/api";
+import { advanceRun, approveRun, createWorkerJob, getWorkerJob } from "@/lib/api";
 
 export type AdvanceActionState = {
   status: "idle" | "success" | "error";
@@ -127,7 +127,7 @@ export async function createWorkerJobAction(
   };
 }
 
-export async function tickWorkerJobAction(
+export async function refreshWorkerJobAction(
   previousState: WorkerActionState,
   formData: FormData
 ): Promise<WorkerActionState> {
@@ -136,11 +136,11 @@ export async function tickWorkerJobAction(
   if (!jobId) {
     return {
       status: "error",
-      message: "Queue a worker job before running a worker step."
+      message: "Queue a worker job before refreshing its status."
     };
   }
 
-  const job = await tickWorkerJob(jobId);
+  const job = await getWorkerJob(jobId);
 
   if (!job) {
     return {

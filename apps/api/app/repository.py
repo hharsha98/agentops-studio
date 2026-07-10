@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, Integer, String, create_engine, select, text
+from sqlalchemy import JSON, DateTime, Integer, String, create_engine, select, text, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from .schemas import AgentRun, WorkerJob
@@ -138,6 +138,40 @@ class RunRepository:
                 record.updated_at = now
                 record.payload = job.model_dump(mode="json")
 
+            session.commit()
+            return job
+
+    def claim_worker_job(self, job_id: str) -> WorkerJob | None:
+        with self.session_factory() as session:
+            now = datetime.now(UTC)
+            result = session.execute(
+                update(WorkerJobRecord)
+                .where(WorkerJobRecord.id == job_id, WorkerJobRecord.status == "queued")
+                .values(status="running", updated_at=now)
+            )
+            if result.rowcount != 1:
+                session.rollback()
+                return None
+
+            record = session.get(WorkerJobRecord, job_id)
+            if record is None:
+                session.rollback()
+                return None
+
+            timestamp = now.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+            persisted_job = WorkerJob.model_validate(record.payload)
+            job = persisted_job.model_copy(
+                update={
+                    "status": "running",
+                    "attempts": persisted_job.attempts + 1,
+                    "message": "Worker claimed the queued agent run.",
+                    "started_at": timestamp,
+                    "updated_at": timestamp,
+                    "finished_at": None,
+                    "error": None,
+                }
+            )
+            record.payload = job.model_dump(mode="json")
             session.commit()
             return job
 

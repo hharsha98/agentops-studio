@@ -1,7 +1,7 @@
 import json
 import re
-from pathlib import Path
 
+from .data_files import demo_data_path
 from .schemas import (
     KnowledgeDocument,
     KnowledgeDocumentListResponse,
@@ -11,7 +11,7 @@ from .schemas import (
 )
 
 
-DATA_PATH = Path(__file__).resolve().parents[3] / "demo-data" / "knowledge-base.json"
+DATA_PATH = demo_data_path("knowledge-base.json")
 
 
 def _load_documents() -> list[KnowledgeDocument]:

@@ -178,6 +178,10 @@ class WorkerJob(BaseModel):
     run_id: str
     status: WorkerJobStatus
     steps_completed: int = 0
+    attempts: int = 0
     message: str
     created_at: str
     updated_at: str
+    started_at: str | None = None
+    finished_at: str | None = None
+    error: str | None = None

@@ -54,11 +54,14 @@ def tick_worker_job(
 
     run = advance_run(job.run_id, repository=repository)
     if run is None:
+        timestamp = _now_iso()
         updated = job.model_copy(
             update={
                 "status": "failed",
                 "message": "Run not found while processing worker job.",
-                "updated_at": _now_iso(),
+                "updated_at": timestamp,
+                "finished_at": timestamp,
+                "error": "Run not found while processing worker job.",
             }
         )
         return repository.save_worker_job(updated)
@@ -75,12 +78,14 @@ def tick_worker_job(
         status = "failed"
         message = "Worker stopped because the run failed."
 
+    timestamp = _now_iso()
     updated = job.model_copy(
         update={
             "status": status,
             "steps_completed": job.steps_completed + 1,
             "message": message,
-            "updated_at": _now_iso(),
+            "updated_at": timestamp,
+            "finished_at": timestamp if status in {"waiting_for_approval", "completed", "failed"} else None,
         }
     )
     return repository.save_worker_job(updated)

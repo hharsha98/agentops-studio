@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { approveRunAction, advanceRunAction, createWorkerJobAction, tickWorkerJobAction } from "./actions";
+import { approveRunAction, advanceRunAction, createWorkerJobAction, refreshWorkerJobAction } from "./actions";
 import type { AdvanceActionState, ApprovalActionState, WorkerActionState } from "./actions";
 
 type RunAdvancePanelProps = {
@@ -40,16 +40,16 @@ export function RunAdvancePanel({ runId, status }: RunAdvancePanelProps) {
   const [advanceState, advanceFormAction] = useActionState(advanceRunAction, initialAdvanceState);
   const [approvalState, approvalFormAction] = useActionState(approveRunAction, initialApprovalState);
   const [workerState, createWorkerFormAction] = useActionState(createWorkerJobAction, initialWorkerState);
-  const [tickState, tickWorkerFormAction] = useActionState(tickWorkerJobAction, initialWorkerState);
+  const [refreshState, refreshWorkerFormAction] = useActionState(refreshWorkerJobAction, initialWorkerState);
   const isTerminal = status === "done" || status === "failed";
   const isApproval = status === "approval";
-  const activeJobId = tickState.jobId ?? workerState.jobId;
+  const activeJobId = refreshState.jobId ?? workerState.jobId;
 
   return (
     <section className="advance-panel">
       <div>
         <strong>Execution control</strong>
-        <span>{isApproval ? "Approve the reviewed artifact and release the workflow outcome." : "Advance the selected run one agent step and refresh the trace."}</span>
+        <span>{isApproval ? "Approve the reviewed artifact and release the workflow outcome." : "Advance a replay manually or queue background execution."}</span>
       </div>
       {isApproval ? (
         <form action={approvalFormAction}>
@@ -73,16 +73,16 @@ export function RunAdvancePanel({ runId, status }: RunAdvancePanelProps) {
         <ActionButton disabled={isTerminal || isApproval} idleText="Queue worker job" pendingText="Queueing..." />
       </form>
       {activeJobId ? (
-        <form action={tickWorkerFormAction}>
+        <form action={refreshWorkerFormAction}>
           <input name="jobId" type="hidden" value={activeJobId} />
-          <ActionButton disabled={isTerminal || tickState.jobStatus === "waiting_for_approval" || workerState.jobStatus === "waiting_for_approval"} idleText="Run worker step" pendingText="Running..." />
+          <ActionButton disabled={false} idleText="Refresh job status" pendingText="Refreshing..." />
         </form>
       ) : null}
       {workerState.status !== "idle" ? (
         <p className={`inline-status ${workerState.status}`} role="status">{workerState.message}</p>
       ) : null}
-      {tickState.status !== "idle" ? (
-        <p className={`inline-status ${tickState.status}`} role="status">{tickState.message}</p>
+      {refreshState.status !== "idle" ? (
+        <p className={`inline-status ${refreshState.status}`} role="status">{refreshState.message}</p>
       ) : null}
     </section>
   );

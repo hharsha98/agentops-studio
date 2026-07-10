@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException, Query
 from .benchmarks import build_benchmark_report
 from .config import settings
 from .knowledge_base import list_documents, search_knowledge
+from .job_dispatcher import WorkerQueueUnavailable, enqueue_worker_job
 from .replay_store import approve_run, advance_run, create_replay_run, get_run, list_runs, list_workflows, storage_is_ready
 from .schemas import (
     AgentRun,
@@ -16,7 +17,7 @@ from .schemas import (
     WorkerJob,
     WorkflowListResponse,
 )
-from .worker_queue import create_worker_job, get_worker_job, tick_worker_job
+from .worker_queue import create_worker_job, get_worker_job
 
 app = FastAPI(title=settings.app_name)
 
@@ -94,20 +95,16 @@ def create_run_worker_job(run_id: str) -> WorkerJob:
     job = create_worker_job(run_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Run not found")
+    try:
+        enqueue_worker_job(job.id)
+    except WorkerQueueUnavailable as exc:
+        raise HTTPException(status_code=503, detail="Worker queue is unavailable") from exc
     return job
 
 
 @app.get("/jobs/{job_id}", response_model=WorkerJob)
 def worker_job_detail(job_id: str) -> WorkerJob:
     job = get_worker_job(job_id)
-    if job is None:
-        raise HTTPException(status_code=404, detail="Worker job not found")
-    return job
-
-
-@app.post("/jobs/{job_id}/tick", response_model=WorkerJob)
-def tick_run_worker_job(job_id: str) -> WorkerJob:
-    job = tick_worker_job(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Worker job not found")
     return job
