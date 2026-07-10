@@ -4,13 +4,21 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-PHASE_FILE=".cursor/PHASE-STATUS.json"
-
-echo "=== AgentOps autonomous loop — Phase 1+ delivery cycle ==="
-echo "Roadmap: .cursor/ROADMAP.md (NOT done until Phase 5 complete)"
+echo "=== AgentOps autonomous loop — local-first delivery (Phases 1–5) ==="
+echo "Roadmap: .cursor/ROADMAP.md — AWS/GCP deferred until local Docker + k3d pass"
 
 echo "→ Configure Reticle + local .env from career-ops FreeLLMAPI"
 python3 scripts/setup-reticle-keys.py
+
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
+export ENABLE_LIVE_LLM="${ENABLE_LIVE_LLM:-true}"
+export MODEL_API_KEY="${MODEL_API_KEY:-}"
 
 if ! curl -sf http://localhost:3001/api/health >/dev/null 2>&1; then
   echo "Starting FreeLLMAPI on :3001..."
@@ -54,6 +62,9 @@ if [[ "${need_api_restart}" -eq 1 ]]; then
     source .venv/bin/activate
     pip install -q -e ".[dev]"
     REDIS_URL="${REDIS_URL:-redis://localhost:6379/0}" \
+    ENABLE_LIVE_LLM="${ENABLE_LIVE_LLM:-false}" \
+    MODEL_API_KEY="${MODEL_API_KEY:-}" \
+    MODEL_BASE_URL="${MODEL_BASE_URL:-http://localhost:3001/v1}" \
       uvicorn app.main:app --host 127.0.0.1 --port 8001
   ) &
   for _ in $(seq 1 30); do
@@ -102,11 +113,19 @@ echo "→ Docker compose config"
 docker compose config -q
 
 if [[ "${LOOP_COMPOSE_SMOKE:-1}" == "1" ]]; then
-  echo "→ Compose smoke (api + worker + postgres + redis)"
+  echo "→ Compose smoke (api + worker + postgres + redis + prod web)"
   chmod +x scripts/compose-smoke.sh
   bash scripts/compose-smoke.sh
 else
   echo "→ Compose smoke skipped (LOOP_COMPOSE_SMOKE=0)"
+fi
+
+if [[ "${LOOP_K8S_SMOKE:-0}" == "1" ]]; then
+  echo "→ Local k3d smoke (optional)"
+  chmod +x scripts/k8s-local-smoke.sh
+  bash scripts/k8s-local-smoke.sh
+else
+  echo "→ k8s smoke skipped (set LOOP_K8S_SMOKE=1 to enable)"
 fi
 
 python3 - <<'PY'
@@ -116,10 +135,10 @@ from pathlib import Path
 
 status = {
     "updated_at": datetime.now(UTC).isoformat(),
-    "current_phase": 1,
-    "phase_name": "compose_truth",
+    "current_phase": 2,
+    "phase_name": "local_docker_prod",
     "loop_complete": False,
-    "note": "Demo gates green; full product + AWS delivery still in progress",
+    "note": "Local-first: Compose + LLM + k3d before any AWS/GCP",
 }
 Path(".cursor/PHASE-STATUS.json").write_text(json.dumps(status, indent=2) + "\n")
 PY

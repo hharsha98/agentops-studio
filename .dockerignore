@@ -1,0 +1,9 @@
+node_modules
+apps/api/.venv
+apps/web/.next
+.git
+.cursor/eval-reports
+tools/reticle
+**/__pycache__
+*.pyc
+.env

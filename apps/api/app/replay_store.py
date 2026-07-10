@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from .config import settings
 from .data_files import demo_data_path
+from .llm_client import LLMClientError, complete_chat
 from .repository import RunRepository
 from .schemas import AgentRun, ReplayRunRequest, RunArtifact, RunSummary, RunTraceEvent, WorkflowTemplate
 
@@ -159,6 +160,32 @@ def advance_run(run_id: str, *, repository: RunRepository = DEFAULT_REPOSITORY) 
         f"{running_task.agent} finished {running_task.artifact.lower()}.",
         running_task.agent,
     )
+
+    if settings.enable_live_llm and settings.model_api_key:
+        prompt = (
+            f"You are {running_task.agent} in AgentOps Studio. "
+            f"Workflow goal: {run.goal}. "
+            f"Task: {running_task.title}. "
+            "Reply in 2-3 concise sentences for the operator trace."
+        )
+        try:
+            llm_text, token_count = complete_chat(prompt)
+            run.metrics.tokens += token_count
+            _append_trace(
+                run,
+                "llm_completion",
+                f"{running_task.agent} model output",
+                llm_text[:500],
+                running_task.agent,
+            )
+        except LLMClientError as exc:
+            _append_trace(
+                run,
+                "llm_error",
+                "Model gateway error",
+                str(exc)[:300],
+                running_task.agent,
+            )
 
     next_task = next(
         (

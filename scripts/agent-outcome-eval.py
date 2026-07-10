@@ -159,6 +159,22 @@ def check_workflows_catalog() -> Check:
     return Check("workflows_catalog", ok, f"total={report['total']} ids={sorted(ids)}")
 
 
+def check_live_llm_trace() -> Check:
+    if os.environ.get("ENABLE_LIVE_LLM", "").lower() not in {"1", "true", "yes"}:
+        return Check("live_llm_trace", True, "skipped (ENABLE_LIVE_LLM off)")
+
+    created = request(
+        "POST",
+        "/runs/replay",
+        {"workflow_id": "research-report", "goal": "Live LLM trace check for autonomous eval."},
+    )
+    run_id = created["id"]
+    advanced = request("POST", f"/runs/{run_id}/advance")
+    trace_types = {event["type"] for event in advanced["trace"]}
+    ok = "llm_completion" in trace_types
+    return Check("live_llm_trace", ok, f"trace_types={sorted(trace_types)}")
+
+
 def main() -> int:
     checks: list[Check] = []
     try:
@@ -172,6 +188,7 @@ def main() -> int:
             check_worker_job_lifecycle(),
             check_benchmark_after_approval(),
             check_knowledge_search(),
+            check_live_llm_trace(),
         ]
     except urllib.error.URLError as error:
         print(f"API unreachable at {API_BASE}: {error}")

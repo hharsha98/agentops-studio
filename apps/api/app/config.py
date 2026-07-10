@@ -5,6 +5,8 @@ class Settings(BaseSettings):
     app_name: str = "AgentOps Studio API"
     model_base_url: str = "http://localhost:3001/v1"
     model_name: str = "auto"
+    model_api_key: str = ""
+    enable_live_llm: bool = False
     public_demo_mode: bool = True
     database_url: str = "sqlite:///./agentops-studio.db"
     redis_url: str = "redis://localhost:6379/0"

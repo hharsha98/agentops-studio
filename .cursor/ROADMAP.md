@@ -1,89 +1,86 @@
-# AgentOps Studio — Full delivery roadmap
+# AgentOps Studio — Local-first delivery roadmap
 
 **Branch:** `cursor/ui-deploy-goal` (no merge to `main` until you approve)  
-**True end goal:** Fully workable local deployment + AWS-deployable production stack, with **continuous Reticle-aligned agent verification**.
+**Strategy:** Fully build and verify **locally** first — Docker Compose → **local Kubernetes (k3d)** → defer AWS/GCP until the app works end-to-end on your machine.
 
 ## Honest status (2026-07-10)
 
 | Target | Grade | Notes |
 |--------|-------|-------|
-| Polished demo UI + replay API | ~85% | E2E + pytest green |
-| Fully functional local deployment | ~45% | Compose unproven, dev-only web, no real LLM |
-| AWS-ready | ~10% | K8s skeleton, no Terraform, no CI |
-
-**The current `npm run loop` only proves the demo shell — not production readiness.**
-
----
-
-## Phase 1 — Compose truth (IN PROGRESS)
-
-Prove Postgres + Redis + API + worker + web work together.
-
-**Build:**
-- `scripts/compose-smoke.sh` — full stack smoke on `:8000` / `:3010`
-- Worker job lifecycle in `scripts/agent-outcome-eval.py`
-- All 3 workflow replays in eval + Reticle pack
-- `/ready` checks Redis when `REQUIRE_REDIS_FOR_READY=true`
-- Loop starts Redis + RQ worker when needed
-
-**Exit criteria:**
-- [ ] `compose-smoke.sh` exits 0
-- [ ] Worker job reaches `waiting_for_approval` or `completed` without manual advance
-- [ ] Agent eval ≥ 10 checks (worker + 3 workflows)
-- [ ] Added to `npm run loop`
+| Demo UI + replay API | ~85% | E2E + pytest green |
+| Docker Compose full stack | ~50% | Smoke script added; prod web in progress |
+| Local Kubernetes (k3d) | ~15% | Base manifests exist; smoke script added |
+| AWS / GCP | **Deferred** | Plans only in `infra/terraform/*/README.md` |
 
 ---
 
-## Phase 2 — Production-shaped local stack
+## Phase 1 — Docker Compose truth (MOSTLY DONE)
 
-**Build:** `apps/web/Dockerfile`, prod web in Compose, API-required Playwright tests, worker healthcheck.
+Prove Postgres + Redis + API + worker (+ web) work together in Docker.
 
 **Exit criteria:**
-- [ ] Compose uses production web image (no `npm install` on start)
+- [x] Agent eval 9+ checks (worker + 3 workflows + optional LLM)
+- [x] `compose-smoke.sh` for api + worker path
+- [x] Full compose including **production web image**
+- [ ] `npm run loop` compose smoke green every cycle
+
+---
+
+## Phase 2 — Production-shaped local Docker (IN PROGRESS)
+
+**Build:** `apps/web/Dockerfile`, prod web in Compose, worker healthcheck, API-required E2E option.
+
+**Exit criteria:**
+- [ ] `docker compose up` uses built images (no `npm install` on start)
+- [ ] Web serves production `next build` on `:3010`
 - [ ] `/ready` returns 503 when Redis required and down
-- [ ] Playwright test fails when API is down (no silent fallback)
 
 ---
 
-## Phase 3 — Real agent / LLM step
+## Phase 3 — Real agent / LLM step (IN PROGRESS)
 
-**Build:** HTTP client to FreeLLMAPI, one workflow step calls a model, token metrics from real usage.
+**Build:** FreeLLMAPI client in API, one workflow step calls a model, Reticle LLM-judge on real output.
 
 **Exit criteria:**
-- [ ] Trace event contains real model output
-- [ ] `eval:llm` + API eval assert LLM boundary
-- [ ] Reticle pack includes LLM-judge on agent output
+- [x] `llm_client.py` + trace `llm_completion` when `ENABLE_LIVE_LLM=true`
+- [ ] Trace contains real model output in compose + worker path
+- [ ] `eval:llm` + API eval assert LLM boundary every cycle
 
 ---
 
-## Phase 4 — AWS foundation
+## Phase 4 — Product completeness (local)
 
-**Build:** `infra/terraform/aws/*.tf`, complete K8s (Ingress, secrets), GitHub Actions CI.
-
-**Exit criteria:**
-- [ ] `terraform apply` creates EKS + RDS + ElastiCache
-- [ ] `kubectl apply` — pods ready, public URL serves `/ready`
-- [ ] CI green on PR
-
----
-
-## Phase 5 — Product completeness
-
-**Build:** Wire research/MCP/traces to API, SearXNG integration, expand demo data, private mode.
+**Build:** Wire research/MCP/traces to API, SearXNG hook, expand workflows, `PUBLIC_DEMO_MODE=false` path.
 
 **Exit criteria:**
 - [ ] No critical pages are 100% static mock
 - [ ] Reticle eval covers all agent surfaces
-- [ ] `PUBLIC_DEMO_MODE=false` path tested
 
 ---
 
-## Continuous loop definition
+## Phase 5 — Local Kubernetes (k3d)
 
-Each cycle until **Phase 5 exit criteria** are met:
+**Build:** Build/load images, `kubectl apply` base manifests, pods ready against host Compose Postgres/Redis (or in-cluster later).
+
+**Exit criteria:**
+- [ ] `npm run eval:k8s` — api + web pods ready, `/ready` OK
+- [ ] Documented flow in `infra/k8s/local/README.md`
+- [ ] Loop runs k8s smoke when `LOOP_K8S_SMOKE=1` and cluster exists
+
+---
+
+## Phase 6 — AWS / GCP (DEFERRED)
+
+**Not in scope until Phases 1–5 pass on your machine.**
+
+Terraform, EKS/GKE, managed RDS — revisit only after local Docker + local k8d are fully working.
+
+---
+
+## Continuous loop
 
 ```
-setup keys → unit tests → build → E2E → agent eval (Reticle mirror) → LLM eval → compose smoke (Phase 1+) → fix gaps → commit branch
+setup keys → Redis + worker → pytest → build → E2E → agent eval → LLM eval → compose smoke → (optional k8s smoke) → commit branch
 ```
 
-**Not "done" until:** local `docker compose up` is production-shaped AND AWS IaC deploys AND agents are Reticle-verified with real LLM steps.
+**Done when:** Full app works in **local Docker** and **local k8d pods**, with Reticle-verified agents and real LLM steps — **not** when AWS exists.

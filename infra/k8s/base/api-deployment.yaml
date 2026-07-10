@@ -47,6 +47,8 @@ spec:
                   key: redis-url
             - name: WORKER_QUEUE_NAME
               value: agentops
+            - name: REQUIRE_REDIS_FOR_READY
+              value: "true"
             - name: MODEL_BASE_URL
               valueFrom:
                 secretKeyRef:

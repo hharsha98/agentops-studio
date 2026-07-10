@@ -89,6 +89,7 @@ def write_project_env(freellm_key: str, gemini_key: str | None) -> None:
         "MODEL_BASE_URL=http://localhost:3001/v1",
         f"MODEL_API_KEY={freellm_key}",
         "MODEL_NAME=auto",
+        "ENABLE_LIVE_LLM=true",
         "API_BASE_URL=http://localhost:8001",
         "NEXT_PUBLIC_API_BASE_URL=http://localhost:8001",
         "DATABASE_URL=sqlite:///./agentops-studio.db",
