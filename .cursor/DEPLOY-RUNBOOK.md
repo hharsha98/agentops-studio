@@ -49,15 +49,15 @@ cd "/Users/harsha/Documents/AI PROJECTS/projects/agentops-studio-cursor"
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 npm run dev:web
 ```
 
-## Verify before merge
+## E2E verification
 
 ```bash
-npm run typecheck:web
-npm run lint:web
-npm run build:web
-cd apps/api && pytest -q
-docker compose config
+npm run test:e2e:web
+# or: cd apps/web && npm run test:e2e
 ```
+
+Requires dev server on http://localhost:3010 (`npm run dev:web`).
+
 
 ## Kubernetes (optional local practice)
 
