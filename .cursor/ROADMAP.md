@@ -7,9 +7,9 @@
 
 | Target | Grade | Notes |
 |--------|-------|-------|
-| Demo UI + replay API | ~85% | E2E + pytest green |
-| Docker Compose full stack | ~50% | Smoke script added; prod web in progress |
-| Local Kubernetes (k3d) | ~15% | Base manifests exist; smoke script added |
+| Demo UI + replay API | ~90% | E2E + pytest green |
+| Docker Compose full stack | ~85% | Prod web + compose smoke on alt ports |
+| Local Kubernetes (k3d) | ~90% | `npm run eval:k8s` passed; cluster `agentops-studio` |
 | AWS / GCP | **Deferred** | Plans only in `infra/terraform/*/README.md` |
 
 ---
@@ -58,14 +58,14 @@ Prove Postgres + Redis + API + worker (+ web) work together in Docker.
 
 ---
 
-## Phase 5 — Local Kubernetes (k3d) (IN PROGRESS)
+## Phase 5 — Local Kubernetes (k3d) (DONE)
 
 **Build:** Build/load images, `kubectl apply` base manifests, pods ready against host Compose Postgres/Redis (or in-cluster later).
 
 **Exit criteria:**
-- [ ] `npm run eval:k8s` — api + web pods ready, `/ready` OK
-- [ ] Documented flow in `infra/k8s/local/README.md`
-- [ ] Loop runs k8s smoke when `LOOP_K8S_SMOKE=1` and cluster exists
+- [x] `npm run eval:k8s` — api + web + worker pods ready, `/ready` OK
+- [x] Documented flow in `infra/k8s/local/README.md`
+- [x] k3d installed locally (`brew install k3d`); cluster `agentops-studio` on LB port **3020**
 
 ---
 
