@@ -529,3 +529,59 @@ The browser test confirmed that clicking `Advance run` updated the run board and
 
 ### How To Explain It
 I added a simple workflow state machine. Each click advances the run by one agent step, updates task states, records trace events, and pauses for human approval when needed. This demonstrates how a multi-agent platform can make execution observable instead of hiding agent work inside one black-box response.
+
+---
+
+## Incident 012: Replay runs disappeared after API restart risk
+
+### Incident
+Replay runs were stored only in process memory. That means a run created from the UI would disappear if the API process restarted.
+
+### Why It Matters
+Kubernetes can restart pods during deployments, crashes, scaling, or node maintenance. If application state only lives in memory, users lose work after a restart. Persistent storage is a core production requirement.
+
+### Symptoms
+The app could create and advance runs, but the run store was a Python list inside the API process.
+
+### Root Cause
+The first implementation optimized for fast product behavior. It did not yet have a database-backed repository for saving and loading run state.
+
+### Debugging Steps
+We wrote repository tests that used a temporary SQLite database and created a run through the normal replay function. Then we constructed a new repository instance pointing to the same database file and verified the run could still be loaded.
+
+We also ran a manual restart smoke test:
+
+```bash
+curl -X POST http://localhost:8001/runs/replay
+```
+
+Then we stopped and restarted the API and fetched the same run id:
+
+```bash
+curl http://localhost:8001/runs/<run-id>
+```
+
+### Fix
+We added a SQLAlchemy-backed `RunRepository`. SQLAlchemy is a Python database toolkit that lets the app work with SQLite locally and Postgres in Docker or cloud environments.
+
+The repository stores each run as a JSON payload in a database row. This keeps the first persistence version simple while preserving the complete run state: tasks, trace events, artifacts, metrics, and approval status.
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+The API restart smoke test confirmed that a created replay run survived process restart.
+
+### How To Explain It
+I moved run state from in-memory storage into a repository backed by SQLAlchemy. Locally the app can use SQLite for speed, while Docker Compose uses Postgres, which matches the production deployment direction. This shows that the agent workflow state survives API restarts, which is important for Kubernetes-based systems.

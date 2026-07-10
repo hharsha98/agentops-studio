@@ -71,6 +71,14 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload --port 8000
 ```
 
+By default, the API uses a local SQLite database file:
+
+```bash
+DATABASE_URL=sqlite:///./agentops-studio.db
+```
+
+SQLite is a lightweight file database that is useful for simple local development. Docker Compose uses Postgres instead, which is closer to the production database shape used in managed Kubernetes deployments.
+
 Run both with Docker Compose:
 
 ```bash

@@ -12,10 +12,10 @@ def test_list_runs_returns_replay_summaries() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["total"] >= 3
-    assert body["runs"][0]["id"] == "run-executive-brief"
-    assert body["runs"][0]["status"] == "approval"
-    assert body["runs"][0]["tasks_total"] >= 4
-    assert body["runs"][0]["artifacts_total"] >= 1
+    executive_run = next(run for run in body["runs"] if run["id"] == "run-executive-brief")
+    assert executive_run["status"] == "approval"
+    assert executive_run["tasks_total"] >= 4
+    assert executive_run["artifacts_total"] >= 1
 
 
 def test_get_run_returns_tasks_trace_and_artifacts() -> None:

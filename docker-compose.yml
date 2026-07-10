@@ -19,6 +19,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      DATABASE_URL: postgresql+psycopg://agentops:agentops@postgres:5432/agentops
       MODEL_BASE_URL: http://host.docker.internal:3001/v1
       MODEL_NAME: auto
       PUBLIC_DEMO_MODE: "true"
@@ -59,4 +60,3 @@ services:
 
 volumes:
   postgres-data:
-

@@ -4,6 +4,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from .config import settings
+from .repository import RunRepository
 from .schemas import AgentRun, ReplayRunRequest, RunArtifact, RunSummary, RunTraceEvent, WorkflowTemplate
 
 
@@ -19,7 +21,8 @@ def _load_seed_data() -> tuple[list[WorkflowTemplate], list[AgentRun]]:
     return workflows, runs
 
 
-WORKFLOWS, RUNS = _load_seed_data()
+WORKFLOWS, SEED_RUNS = _load_seed_data()
+DEFAULT_REPOSITORY = RunRepository(settings.database_url, seed_runs=SEED_RUNS)
 
 
 def summarize_run(run: AgentRun) -> RunSummary:
@@ -40,11 +43,11 @@ def summarize_run(run: AgentRun) -> RunSummary:
 
 
 def list_runs() -> list[RunSummary]:
-    return [summarize_run(run) for run in RUNS]
+    return [summarize_run(run) for run in DEFAULT_REPOSITORY.list_runs()]
 
 
-def get_run(run_id: str) -> AgentRun | None:
-    return next((run for run in RUNS if run.id == run_id), None)
+def get_run(run_id: str, *, repository: RunRepository = DEFAULT_REPOSITORY) -> AgentRun | None:
+    return repository.get_run(run_id)
 
 
 def list_workflows() -> list[WorkflowTemplate]:
@@ -55,13 +58,17 @@ def get_workflow(workflow_id: str) -> WorkflowTemplate | None:
     return next((workflow for workflow in WORKFLOWS if workflow.id == workflow_id), None)
 
 
-def create_replay_run(request: ReplayRunRequest) -> AgentRun | None:
+def create_replay_run(
+    request: ReplayRunRequest,
+    *,
+    repository: RunRepository = DEFAULT_REPOSITORY,
+) -> AgentRun | None:
     workflow = get_workflow(request.workflow_id)
     if workflow is None:
         return None
 
     started_at = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    base_run = deepcopy(RUNS[0])
+    base_run = deepcopy(SEED_RUNS[0])
     replay_run = base_run.model_copy(
         update={
             "id": f"run-replay-{workflow.id}-{uuid4().hex[:8]}",
@@ -91,8 +98,7 @@ def create_replay_run(request: ReplayRunRequest) -> AgentRun | None:
     replay_run.trace = replay_run.trace[:1]
     replay_run.artifacts = []
 
-    RUNS.insert(0, replay_run)
-    return replay_run
+    return repository.save_run(replay_run, newest=True)
 
 
 def _now_iso() -> str:
@@ -128,14 +134,14 @@ def _approval_artifact(run: AgentRun) -> RunArtifact:
     )
 
 
-def advance_run(run_id: str) -> AgentRun | None:
-    run = get_run(run_id)
+def advance_run(run_id: str, *, repository: RunRepository = DEFAULT_REPOSITORY) -> AgentRun | None:
+    run = get_run(run_id, repository=repository)
     if run is None:
         return None
 
     running_task = next((task for task in run.tasks if task.status == "running"), None)
     if running_task is None:
-        return run
+        return repository.save_run(run)
 
     running_task.status = "done"
     _append_trace(
@@ -165,7 +171,7 @@ def advance_run(run_id: str) -> AgentRun | None:
             "All workflow tasks completed.",
             running_task.agent,
         )
-        return run
+        return repository.save_run(run)
 
     if "approval" in next_task.id or "approve" in next_task.title.lower():
         next_task.status = "approval"
@@ -179,7 +185,7 @@ def advance_run(run_id: str) -> AgentRun | None:
             f"{next_task.agent} prepared an approval artifact before final delivery.",
             next_task.agent,
         )
-        return run
+        return repository.save_run(run)
 
     next_task.status = "running"
     run.status = "running"
@@ -190,4 +196,4 @@ def advance_run(run_id: str) -> AgentRun | None:
         f"{next_task.agent} started {next_task.artifact.lower()}.",
         next_task.agent,
     )
-    return run
+    return repository.save_run(run)
