@@ -1,22 +1,24 @@
 # Autonomous execution loop — AgentOps Studio
 
-**End goal:** Demo-ready product on `cursor/ui-deploy-goal` — all automated gates green, Reticle eval pack installed, PR open, merge-ready.
+**End goal:** Demo-ready product on `cursor/ui-deploy-goal` — all automated gates green, Reticle eval pack + FreeLLMAPI wired, PR open.
 
-**Mode:** Autonomous. Only pause for merge-to-main approval or secrets/API keys.
+**Mode:** Autonomous on branch only. **Do not merge to `main`** unless user explicitly approves later.
 
 ## Loop cycle (repeat until end goal)
 
 ```
-Run gates → Agent eval (Reticle pack) → Fix gaps → Commit/push → repeat
+Setup keys → Run gates → Agent eval → LLM eval (FreeLLMAPI) → Fix gaps → Commit/push → repeat
 ```
 
 ## Gates (must pass each cycle)
 
 | Gate | Command | Target |
 |------|---------|--------|
+| Reticle keys | `npm run setup:reticle` | FreeLLMAPI + Gemini in Reticle DB |
 | API unit | `cd apps/api && .venv/bin/pytest -q` | 37+ pass |
 | Web E2E | `npm run test:e2e:web` | 14+ pass (port 3010) |
-| Agent outcomes | `python3 scripts/agent-outcome-eval.py` | all checks pass |
+| Agent outcomes | `npm run eval:agent` | all checks pass |
+| LLM eval | `npm run eval:llm` | 3/3 FreeLLMAPI checks |
 | Web build | `npm run build:web` | success |
 | Compose config | `docker compose config -q` | valid |
 
@@ -30,7 +32,7 @@ Run gates → Agent eval (Reticle pack) → Fix gaps → Commit/push → repeat
 
 ## Cycle log
 
-### Cycle 1 — 2026-07-10
-- Installed Reticle v0.2.4 to `tools/reticle/`
-- Created autonomous loop + agent outcome eval harness
-- Running full gate suite + PR creation
+### Cycle 2 — 2026-07-10
+- Wired career-ops FreeLLMAPI unified key into Reticle + local `.env`
+- Added `npm run eval:llm` headless LLM eval via FreeLLMAPI proxy
+- Branch-only development — no merge to `main` until user decides

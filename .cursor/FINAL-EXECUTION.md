@@ -7,7 +7,7 @@
 
 ## Mission
 
-Ship a demo-ready, visually polished AgentOps Studio that passes end-to-end web verification and is ready to merge into `main` when Codex work is compatible.
+Ship a demo-ready, visually polished AgentOps Studio on **`cursor/ui-deploy-goal` only** — passes E2E + eval gates. **No merge to `main`** until you review and approve.
 
 ## Phase A — UI and branding (done)
 - [x] Futuristic AI theme site-wide
@@ -26,9 +26,9 @@ Ship a demo-ready, visually polished AgentOps Studio that passes end-to-end web 
 - [ ] `docker compose up --build` full smoke (long-running)
 - [x] Autonomous loop script `scripts/autonomous-loop.sh`
 
-## Phase D — Merge readiness
-- [x] PR opened for `cursor/ui-deploy-goal` → `main`
-- [ ] User merges when ready (approval required)
+## Phase D — Review readiness (branch only)
+- [x] PR opened for `cursor/ui-deploy-goal` → `main` (for review only)
+- [ ] User reviews branch and decides merge later — **do not auto-merge**
 
 ## Progress log
 - **2026-07-10** — Committed + pushed UI branch. Final execution goal created. E2E verification started.

@@ -12,7 +12,9 @@
     "typecheck:web": "npm run typecheck -w apps/web",
     "test:e2e:web": "npm run test:e2e -w apps/web",
     "loop": "bash scripts/autonomous-loop.sh",
-    "eval:agent": "AGENTOPS_API_BASE=http://localhost:8001 python3 scripts/agent-outcome-eval.py"
+    "eval:agent": "AGENTOPS_API_BASE=http://localhost:8001 python3 scripts/agent-outcome-eval.py",
+    "eval:llm": "python3 scripts/reticle-freellmapi-eval.py",
+    "setup:reticle": "python3 scripts/setup-reticle-keys.py"
   },
   "overrides": {
     "postcss": "^8.5.16"

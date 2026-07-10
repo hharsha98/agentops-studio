@@ -2,8 +2,8 @@
   "name": "AgentOps Orchestrator",
   "description": "Routes business goals to specialist agents, manages workflow replay, approvals, and benchmark scoring for AgentOps Studio.",
   "configuration": {
-    "provider": "openai",
-    "model": "gpt-4o",
+    "provider": "google",
+    "model": "gemini-2.0-flash",
     "temperature": 0.2,
     "maxTokens": 4096
   },
