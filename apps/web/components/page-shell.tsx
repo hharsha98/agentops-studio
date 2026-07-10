@@ -1,15 +1,18 @@
+import { SiteFooter } from "./site-footer";
 import { SiteNav } from "./site-nav";
 
 export function PageShell({
   title,
   eyebrow,
   description,
-  children
+  children,
+  actions
 }: {
   title: string;
   eyebrow: string;
   description: string;
   children: React.ReactNode;
+  actions?: React.ReactNode;
 }) {
   return (
     <main className="shell">
@@ -21,10 +24,11 @@ export function PageShell({
             <h1>{title}</h1>
             <p className="hero-copy">{description}</p>
           </div>
+          {actions ? <div className="page-actions">{actions}</div> : null}
         </div>
         {children}
       </section>
+      <SiteFooter />
     </main>
   );
 }
-

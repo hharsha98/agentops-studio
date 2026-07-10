@@ -19,6 +19,9 @@ export default async function KnowledgePage() {
             <small>{document.source_type.toUpperCase()} · {document.owner}</small>
             <h3>{document.title}</h3>
             <p>{document.chunks_total} chunks available for retrieval with citations attached to workflow artifacts.</p>
+            <div className="score-bar-wrap">
+              <div className="score-bar" style={{ width: `${Math.min(document.chunks_total * 8, 100)}%` }} />
+            </div>
             <div className="card-meta">
               {document.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}
             </div>

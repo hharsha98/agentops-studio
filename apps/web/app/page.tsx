@@ -30,6 +30,8 @@ import {
   Workflow
 } from "lucide-react";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
+import { TechMarquee } from "@/components/tech-marquee";
 import {
   builderCapabilities,
   cloudBadges,
@@ -81,19 +83,25 @@ export default function HomePage() {
       <section className="hero agent-hero">
         <div className="hero-content">
           <div className="eyebrow">Multi-agent orchestration console</div>
-          <h1>Run agent workforces from goal to approved outcome.</h1>
+          <h1 className="split-headline">
+            <span>Run agent</span>
+            <span className="line-muted">workforces.</span>
+          </h1>
           <p className="hero-copy">
             AgentOps Studio coordinates specialist agents, RAG memory, MCP tool servers, approval gates,
             Langfuse traces, benchmark checks, and Kubernetes-ready deployment from one operations workspace.
           </p>
           <div className="hero-actions">
-            <Link className="button primary" href="/dashboard">
-              Open operations console <ArrowRight size={16} />
-            </Link>
-            <Link className="button" href="/workflows">
-              View workflow runtime
-            </Link>
-          </div>
+          <Link className="button primary" href="/dashboard">
+            Open operations console <ArrowRight size={16} />
+          </Link>
+          <Link className="button" href="/workflows">
+            View workflow runtime
+          </Link>
+          <Link className="button" href="/design-preview">
+            Compare design vibes
+          </Link>
+        </div>
           <div className="badges">
             {cloudBadges.map((badge) => (
               <span className="badge" key={badge}>{badge}</span>
@@ -170,6 +178,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <TechMarquee />
 
       <section className="section section-band">
         <div className="section-heading">
@@ -374,6 +384,8 @@ export default function HomePage() {
           <Link className="button" href="/cloud">Review deployment plan</Link>
         </div>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }

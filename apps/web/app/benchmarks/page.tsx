@@ -31,6 +31,9 @@ export default async function BenchmarksPage() {
               <small>{category.average_score}% average</small>
               <h3>{category.label}</h3>
               <p>{category.description}</p>
+              <div className="score-bar-wrap">
+                <div className="score-bar" style={{ width: `${category.average_score}%` }} />
+              </div>
             </article>
           ))}
         </div>

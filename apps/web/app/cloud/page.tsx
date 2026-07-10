@@ -9,11 +9,12 @@ export default function CloudPage() {
       description="AgentOps Studio is designed for containerized delivery, infrastructure as code, secure secrets, observable services, and portable hosting."
     >
       <div className="tabs">
-        {cloudTabs.map((tab) => (
+        {cloudTabs.map((tab, index) => (
           <article className="card" key={tab.name}>
-            <small>{tab.name}</small>
-            <h3>{tab.summary}</h3>
-            <p>{tab.proof}</p>
+            <small>Stage {index + 1}</small>
+            <h3>{tab.name}</h3>
+            <p>{tab.summary}</p>
+            <div className="card-meta"><span>{tab.proof}</span></div>
           </article>
         ))}
       </div>

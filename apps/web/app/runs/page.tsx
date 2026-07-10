@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { PageShell } from "@/components/page-shell";
 import { getRun, getRuns } from "@/lib/api";
 
@@ -31,6 +33,17 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
       title="Track every agent run from idea to outcome"
       description={selectedRun ? `${selectedRun.title}: ${selectedRun.goal}` : "Runs move through backlog, running, approval, failed, and done states with replayable artifacts and traces."}
     >
+      <nav aria-label="Run list" className="run-switcher">
+        {runsResponse.runs.map((run) => (
+          <Link
+            className={run.id === selectedRunId ? "active" : ""}
+            href={`/runs?runId=${run.id}`}
+            key={run.id}
+          >
+            {run.title}
+          </Link>
+        ))}
+      </nav>
       {selectedRun ? (
         <div className="run-summary">
           <div><span>Status</span><strong>{LANE_LABELS[selectedRun.status as keyof typeof LANE_LABELS] ?? selectedRun.status}</strong></div>
@@ -44,13 +57,13 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
       ) : null}
       <div className="preview-body">
         {LANES.map((lane) => (
-          <div className="lane" key={lane}>
+          <div className={`lane ${lane}-lane`} key={lane}>
             <div className="lane-title">
               <span>{LANE_LABELS[lane]}</span>
               <span>{tasks.filter((task) => task.status === lane).length}</span>
             </div>
             {tasks.filter((task) => task.status === lane).map((task) => (
-              <div className="task" key={task.id}>
+              <div className={`task ${lane}-task`} key={task.id}>
                 <strong>{task.title}</strong>
                 <small>{task.agent} · {task.priority} priority</small>
               </div>
