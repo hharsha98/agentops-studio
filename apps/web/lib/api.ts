@@ -1,4 +1,5 @@
 import replayData from "../../../demo-data/replay-runs.json";
+import knowledgeData from "../../../demo-data/knowledge-base.json";
 
 export type RunStatus = "backlog" | "running" | "approval" | "done" | "failed";
 export type RiskLevel = "low" | "medium" | "high";
@@ -86,9 +87,48 @@ export type ReplayRunInput = {
   goal: string;
 };
 
+export type KnowledgeDocumentSummary = {
+  id: string;
+  title: string;
+  source_type: string;
+  owner: string;
+  chunks_total: number;
+  tags: string[];
+};
+
+export type KnowledgeSearchResult = {
+  chunk_id: string;
+  document_id: string;
+  document_title: string;
+  heading: string;
+  content: string;
+  citation: string;
+  score: number;
+  tags: string[];
+};
+
+type KnowledgeDocumentListResponse = {
+  total: number;
+  documents: KnowledgeDocumentSummary[];
+};
+
+type KnowledgeSearchResponse = {
+  query: string;
+  total: number;
+  results: KnowledgeSearchResult[];
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 const FALLBACK_RUNS = replayData.runs as AgentRun[];
 const FALLBACK_WORKFLOWS = replayData.workflows as WorkflowTemplate[];
+const FALLBACK_KNOWLEDGE_DOCUMENTS = knowledgeData.documents.map((document) => ({
+  id: document.id,
+  title: document.title,
+  source_type: document.source_type,
+  owner: document.owner,
+  chunks_total: document.chunks.length,
+  tags: Array.from(new Set(document.chunks.flatMap((chunk) => chunk.tags))).sort()
+})) satisfies KnowledgeDocumentSummary[];
 
 function summarizeRun(run: AgentRun): RunSummary {
   return {
@@ -184,4 +224,45 @@ export async function advanceRun(runId: string): Promise<AgentRun | null> {
 
 export async function approveRun(runId: string): Promise<AgentRun | null> {
   return postJson<AgentRun>(`/runs/${runId}/approve`, {});
+}
+
+export async function getKnowledgeDocuments(): Promise<KnowledgeDocumentListResponse> {
+  const apiResponse = await fetchJson<KnowledgeDocumentListResponse>("/knowledge/documents");
+  if (apiResponse) {
+    return apiResponse;
+  }
+
+  return {
+    total: FALLBACK_KNOWLEDGE_DOCUMENTS.length,
+    documents: FALLBACK_KNOWLEDGE_DOCUMENTS
+  };
+}
+
+export async function searchKnowledge(query: string): Promise<KnowledgeSearchResponse> {
+  const apiResponse = await fetchJson<KnowledgeSearchResponse>(`/knowledge/search?query=${encodeURIComponent(query)}`);
+  if (apiResponse) {
+    return apiResponse;
+  }
+
+  const tokens = new Set(query.toLowerCase().match(/[a-z0-9]+/g) ?? []);
+  const results = knowledgeData.documents
+    .flatMap((document) => document.chunks.map((chunk) => {
+      const searchable = [document.title, chunk.heading, chunk.content, ...chunk.tags].join(" ").toLowerCase();
+      const score = Array.from(tokens).filter((token) => token.length > 2 && searchable.includes(token)).length;
+      return {
+        chunk_id: chunk.id,
+        document_id: document.id,
+        document_title: document.title,
+        heading: chunk.heading,
+        content: chunk.content,
+        citation: `${document.title} / ${chunk.heading}`,
+        score,
+        tags: chunk.tags
+      };
+    }))
+    .filter((result) => result.score > 0)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 5);
+
+  return { query, total: results.length, results };
 }

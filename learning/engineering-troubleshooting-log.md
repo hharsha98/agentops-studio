@@ -639,3 +639,52 @@ The browser test confirmed that `Approve outcome` moved the run to `Done` and di
 
 ### How To Explain It
 I completed the human approval loop. The system can now create a run, execute agent steps, pause for review, and release the outcome only after approval. That is closer to how companies expect agentic systems to work in real operations, where auditability and control matter.
+
+---
+
+## Incident 014: Knowledge page needed real retrieval data
+
+### Incident
+The Knowledge page described document intelligence, but it did not yet read from a backend knowledge API or show retrieved chunks.
+
+### Why It Matters
+RAG means retrieval augmented generation. In simple terms, an AI system searches trusted documents first, then uses the retrieved evidence to produce a grounded answer. Companies care about this because agent outputs need citations and auditability.
+
+### Symptoms
+The page showed static cards for PDF, Markdown, and DOCX sources, but there was no searchable document index.
+
+### Root Cause
+The first UI focused on describing the capability. The backend needed a concrete retrieval contract before adding embeddings, pgvector, or LLM answer generation.
+
+### Debugging Steps
+We wrote failing tests for:
+
+```bash
+GET /knowledge/documents
+GET /knowledge/search?query=<text>
+```
+
+The tests first failed with `404 Not Found`, proving no knowledge API existed. After adding lexical retrieval, one test expected a specific top chunk, but another chunk from the same support policy ranked higher. We changed the test to verify the correct document and citation family instead of overfitting to one chunk.
+
+### Fix
+We added seeded demo knowledge documents, backend schemas, a lexical retrieval module, API routes, and a dynamic Knowledge page that displays indexed sources and retrieval results with citations.
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+A route smoke test confirmed the Knowledge page renders the retrieval preview and support policy citation.
+
+### How To Explain It
+I added the first RAG contract without overbuilding. The system can list trusted documents and retrieve relevant chunks with citations. This gives the project a real document-intelligence foundation that can later be upgraded to embeddings and pgvector.

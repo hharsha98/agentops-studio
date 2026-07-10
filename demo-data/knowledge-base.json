@@ -1,0 +1,64 @@
+{
+  "documents": [
+    {
+      "id": "support-policy",
+      "title": "Support Escalation Policy",
+      "source_type": "markdown",
+      "owner": "Customer Operations",
+      "chunks": [
+        {
+          "id": "support-policy-1",
+          "heading": "Priority rules",
+          "content": "Security incidents, payment failures, and data-loss reports must be classified as high priority. The support triage agent drafts a reply but pauses before sending customer-visible messages.",
+          "tags": ["support", "triage", "approval", "customer"]
+        },
+        {
+          "id": "support-policy-2",
+          "heading": "Human review",
+          "content": "Any message that mentions refunds, legal exposure, health claims, or account termination requires a human approval step before release.",
+          "tags": ["approval", "risk", "support"]
+        }
+      ]
+    },
+    {
+      "id": "executive-brief-runbook",
+      "title": "Executive Daily Brief Runbook",
+      "source_type": "pdf",
+      "owner": "Business Operations",
+      "chunks": [
+        {
+          "id": "executive-brief-1",
+          "heading": "Daily signal collection",
+          "content": "The executive brief workflow collects sales pipeline movement, support risk, delivery blockers, hiring changes, and open compliance approvals before 09:00.",
+          "tags": ["executive", "brief", "sales", "support", "delivery"]
+        },
+        {
+          "id": "executive-brief-2",
+          "heading": "Output format",
+          "content": "The final brief should contain a risk summary, three decisions needed today, owner names, and citations back to the supporting documents or trace events.",
+          "tags": ["executive", "citations", "artifact"]
+        }
+      ]
+    },
+    {
+      "id": "research-method",
+      "title": "Research Agent Method",
+      "source_type": "docx",
+      "owner": "Strategy",
+      "chunks": [
+        {
+          "id": "research-method-1",
+          "heading": "Evidence quality",
+          "content": "Research outputs must separate direct source facts from model interpretation. Every recommendation should include citations and confidence notes.",
+          "tags": ["research", "citations", "confidence"]
+        },
+        {
+          "id": "research-method-2",
+          "heading": "Competitive scan",
+          "content": "The research workflow compares positioning, pricing, integration depth, workflow coverage, and deployment constraints across selected competitors.",
+          "tags": ["research", "competitive", "pricing"]
+        }
+      ]
+    }
+  ]
+}

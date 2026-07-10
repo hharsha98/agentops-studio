@@ -1,8 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from typing import Annotated
+
+from fastapi import FastAPI, HTTPException, Query
 
 from .config import settings
+from .knowledge_base import list_documents, search_knowledge
 from .replay_store import approve_run, advance_run, create_replay_run, get_run, list_runs, list_workflows
-from .schemas import AgentRun, ReplayRunRequest, RunListResponse, WorkflowListResponse
+from .schemas import (
+    AgentRun,
+    KnowledgeDocumentListResponse,
+    KnowledgeSearchResponse,
+    ReplayRunRequest,
+    RunListResponse,
+    WorkflowListResponse,
+)
 
 app = FastAPI(title=settings.app_name)
 
@@ -72,3 +82,16 @@ def approve_replay_run(run_id: str) -> AgentRun:
 def workflows() -> WorkflowListResponse:
     workflow_templates = list_workflows()
     return WorkflowListResponse(total=len(workflow_templates), workflows=workflow_templates)
+
+
+@app.get("/knowledge/documents", response_model=KnowledgeDocumentListResponse)
+def knowledge_documents() -> KnowledgeDocumentListResponse:
+    return list_documents()
+
+
+@app.get("/knowledge/search", response_model=KnowledgeSearchResponse)
+def knowledge_search(query: Annotated[str, Query(min_length=1, max_length=160)]) -> KnowledgeSearchResponse:
+    stripped_query = query.strip()
+    if not stripped_query:
+        raise HTTPException(status_code=422, detail="Search query is required")
+    return search_knowledge(stripped_query)

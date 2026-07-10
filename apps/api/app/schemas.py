@@ -96,3 +96,49 @@ class WorkflowListResponse(BaseModel):
 class ReplayRunRequest(BaseModel):
     workflow_id: str
     goal: str = Field(min_length=8, max_length=500)
+
+
+class KnowledgeChunk(BaseModel):
+    id: str
+    heading: str
+    content: str
+    tags: list[str] = Field(default_factory=list)
+
+
+class KnowledgeDocument(BaseModel):
+    id: str
+    title: str
+    source_type: str
+    owner: str
+    chunks: list[KnowledgeChunk]
+
+
+class KnowledgeDocumentSummary(BaseModel):
+    id: str
+    title: str
+    source_type: str
+    owner: str
+    chunks_total: int
+    tags: list[str]
+
+
+class KnowledgeDocumentListResponse(BaseModel):
+    total: int
+    documents: list[KnowledgeDocumentSummary]
+
+
+class KnowledgeSearchResult(BaseModel):
+    chunk_id: str
+    document_id: str
+    document_title: str
+    heading: str
+    content: str
+    citation: str
+    score: int
+    tags: list[str]
+
+
+class KnowledgeSearchResponse(BaseModel):
+    query: str
+    total: int
+    results: list[KnowledgeSearchResult]
