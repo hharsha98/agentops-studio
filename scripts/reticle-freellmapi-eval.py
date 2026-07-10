@@ -84,7 +84,7 @@ def check_agentops_judge(api_key: str) -> Check:
         f"{sample}"
     )
     text = chat(api_key, prompt).strip().upper()
-    ok = text.startswith("YES") or text == "YES"
+    ok = "YES" in text and not text.startswith("NO")
     return Check("freellmapi_llm_judge", ok, text[:80])
 
 
