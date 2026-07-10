@@ -688,3 +688,59 @@ A route smoke test confirmed the Knowledge page renders the retrieval preview an
 
 ### How To Explain It
 I added the first RAG contract without overbuilding. The system can list trusted documents and retrieve relevant chunks with citations. This gives the project a real document-intelligence foundation that can later be upgraded to embeddings and pgvector.
+
+---
+
+## Incident 015: Benchmark page needed real evaluation scores
+
+### Incident
+The Benchmarks page described quality, safety, cost, and traceability checks, but it displayed static numbers instead of scoring actual agent runs.
+
+### Why It Matters
+Agent systems need evaluation. Evaluation means measuring whether a run completed successfully, used citations, respected approval gates, stayed within cost limits, and produced enough trace data to debug.
+
+### Symptoms
+The page had fixed metrics such as scenarios and target success, but no backend benchmark report or run-level scorecard.
+
+### Root Cause
+The earlier product shell described observability and evaluation before the backend had enough run state to score. After adding run persistence, approval, traces, artifacts, and knowledge retrieval, there was enough data to build deterministic scoring.
+
+### Debugging Steps
+We wrote failing tests for:
+
+```bash
+GET /benchmarks
+```
+
+The tests first failed with `404 Not Found`, proving no benchmark API existed. After implementing the route, a local smoke check still returned `404` because the running API process had not been restarted with the new code. Restarting the local API loaded the route and the smoke check passed.
+
+### Fix
+We added a benchmark scoring module that evaluates each run across:
+
+- Workflow success.
+- Citation quality.
+- Approval safety.
+- Cost control.
+- Traceability.
+
+The Benchmarks page now reads the backend report and displays category averages plus recent run scores.
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+Route smoke checks confirmed `/benchmarks` returns a benchmark report and the Benchmarks page renders evaluation categories and recent run scores.
+
+### How To Explain It
+I added deterministic evaluation before adding LLM-as-judge. The system now scores real agent runs using transparent rules from run status, citations, approval traces, estimated cost, and observability data. This creates a reliable baseline that can later be extended with LLM judging.

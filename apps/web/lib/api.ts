@@ -118,6 +118,34 @@ type KnowledgeSearchResponse = {
   results: KnowledgeSearchResult[];
 };
 
+export type BenchmarkCategory = {
+  id: string;
+  label: string;
+  average_score: number;
+  description: string;
+};
+
+export type RunBenchmarkScore = {
+  run_id: string;
+  title: string;
+  status: RunStatus;
+  workflow_success: number;
+  citation_quality: number;
+  approval_safety: number;
+  cost_control: number;
+  traceability: number;
+  overall_score: number;
+  notes: string[];
+};
+
+export type BenchmarkReport = {
+  scenario_count: number;
+  runs_evaluated: number;
+  average_overall_score: number;
+  categories: BenchmarkCategory[];
+  run_scores: RunBenchmarkScore[];
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 const FALLBACK_RUNS = replayData.runs as AgentRun[];
 const FALLBACK_WORKFLOWS = replayData.workflows as WorkflowTemplate[];
@@ -265,4 +293,72 @@ export async function searchKnowledge(query: string): Promise<KnowledgeSearchRes
     .slice(0, 5);
 
   return { query, total: results.length, results };
+}
+
+function scoreFallbackRun(run: AgentRun): RunBenchmarkScore {
+  const workflow_success = run.status === "done" ? 100 : run.status === "approval" ? 82 : run.status === "running" ? 58 : 35;
+  const citation_quality = Math.min(100, (run.metrics.citations + run.artifacts.reduce((sum, artifact) => sum + artifact.citations.length, 0)) * 12);
+  const approval_safety = run.trace.some((event) => event.type === "approval_completed")
+    ? 100
+    : run.trace.some((event) => event.type === "approval_required") || run.artifacts.some((artifact) => artifact.requires_approval)
+      ? 92
+      : run.status === "running"
+        ? 76
+        : 70;
+  const cost_control = run.metrics.estimated_cost_usd <= 0.25 ? 100 : run.metrics.estimated_cost_usd <= 0.5 ? 88 : run.metrics.estimated_cost_usd <= 0.75 ? 76 : 60;
+  const traceability = Math.min(100, run.trace.length * 18 + run.artifacts.length * 12);
+  const overall_score = Math.round((workflow_success + citation_quality + approval_safety + cost_control + traceability) / 5);
+
+  return {
+    run_id: run.id,
+    title: run.title,
+    status: run.status,
+    workflow_success,
+    citation_quality,
+    approval_safety,
+    cost_control,
+    traceability,
+    overall_score,
+    notes: [
+      `${run.trace.length} trace events inspected`,
+      `${run.artifacts.length} artifacts inspected`,
+      `$${run.metrics.estimated_cost_usd.toFixed(2)} estimated run cost`
+    ]
+  };
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+export async function getBenchmarks(): Promise<BenchmarkReport> {
+  const apiResponse = await fetchJson<BenchmarkReport>("/benchmarks");
+  if (apiResponse) {
+    return apiResponse;
+  }
+
+  const run_scores = FALLBACK_RUNS.map(scoreFallbackRun);
+  const categories: BenchmarkCategory[] = [
+    ["workflow_success", "Workflow success", "Rewards completed runs and partially credits runs paused for approval."],
+    ["citation_quality", "Citation quality", "Measures whether artifacts and metrics include cited evidence."],
+    ["approval_safety", "Approval safety", "Checks whether risky workflow outcomes pause for review and record approval."],
+    ["cost_control", "Cost control", "Scores runs against estimated token and tool cost targets."],
+    ["traceability", "Traceability", "Measures whether the run leaves enough trace and artifact evidence to debug."]
+  ].map(([id, label, description]) => ({
+    id,
+    label,
+    description,
+    average_score: average(run_scores.map((score) => score[id as keyof RunBenchmarkScore] as number))
+  }));
+
+  return {
+    scenario_count: 50,
+    runs_evaluated: run_scores.length,
+    average_overall_score: average(run_scores.map((score) => score.overall_score)),
+    categories,
+    run_scores
+  };
 }

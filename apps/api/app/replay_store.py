@@ -46,6 +46,10 @@ def list_runs() -> list[RunSummary]:
     return [summarize_run(run) for run in DEFAULT_REPOSITORY.list_runs()]
 
 
+def list_run_details() -> list[AgentRun]:
+    return DEFAULT_REPOSITORY.list_runs()
+
+
 def get_run(run_id: str, *, repository: RunRepository = DEFAULT_REPOSITORY) -> AgentRun | None:
     return repository.get_run(run_id)
 

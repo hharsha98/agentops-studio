@@ -142,3 +142,31 @@ class KnowledgeSearchResponse(BaseModel):
     query: str
     total: int
     results: list[KnowledgeSearchResult]
+
+
+class BenchmarkCategory(BaseModel):
+    id: str
+    label: str
+    average_score: int
+    description: str
+
+
+class RunBenchmarkScore(BaseModel):
+    run_id: str
+    title: str
+    status: RunStatus
+    workflow_success: int
+    citation_quality: int
+    approval_safety: int
+    cost_control: int
+    traceability: int
+    overall_score: int
+    notes: list[str]
+
+
+class BenchmarkReport(BaseModel):
+    scenario_count: int
+    runs_evaluated: int
+    average_overall_score: int
+    categories: list[BenchmarkCategory]
+    run_scores: list[RunBenchmarkScore]

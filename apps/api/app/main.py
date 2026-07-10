@@ -2,11 +2,13 @@ from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query
 
+from .benchmarks import build_benchmark_report
 from .config import settings
 from .knowledge_base import list_documents, search_knowledge
 from .replay_store import approve_run, advance_run, create_replay_run, get_run, list_runs, list_workflows
 from .schemas import (
     AgentRun,
+    BenchmarkReport,
     KnowledgeDocumentListResponse,
     KnowledgeSearchResponse,
     ReplayRunRequest,
@@ -95,3 +97,8 @@ def knowledge_search(query: Annotated[str, Query(min_length=1, max_length=160)])
     if not stripped_query:
         raise HTTPException(status_code=422, detail="Search query is required")
     return search_knowledge(stripped_query)
+
+
+@app.get("/benchmarks", response_model=BenchmarkReport)
+def benchmarks() -> BenchmarkReport:
+    return build_benchmark_report()
