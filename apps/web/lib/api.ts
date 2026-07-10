@@ -162,7 +162,7 @@ export type WorkerJob = {
   error: string | null;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 const FALLBACK_RUNS = replayData.runs as AgentRun[];
 const FALLBACK_WORKFLOWS = replayData.workflows as WorkflowTemplate[];
 const FALLBACK_KNOWLEDGE_DOCUMENTS = knowledgeData.documents.map((document) => ({
