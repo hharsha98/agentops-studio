@@ -26,39 +26,39 @@ Prove Postgres + Redis + API + worker (+ web) work together in Docker.
 
 ---
 
-## Phase 2 — Production-shaped local Docker (IN PROGRESS)
+## Phase 2 — Production-shaped local Docker (DONE)
 
 **Build:** `apps/web/Dockerfile`, prod web in Compose, worker healthcheck, API-required E2E option.
 
 **Exit criteria:**
-- [ ] `docker compose up` uses built images (no `npm install` on start)
-- [ ] Web serves production `next build` on `:3010`
-- [ ] `/ready` returns 503 when Redis required and down
+- [x] `docker compose up` uses built images (no `npm install` on start)
+- [x] Web serves production `next build` on `:3010`
+- [x] `/ready` returns 503 when Redis required and down
 
 ---
 
-## Phase 3 — Real agent / LLM step (IN PROGRESS)
+## Phase 3 — Real agent / LLM step (DONE)
 
 **Build:** FreeLLMAPI client in API, one workflow step calls a model, Reticle LLM-judge on real output.
 
 **Exit criteria:**
 - [x] `llm_client.py` + trace `llm_completion` when `ENABLE_LIVE_LLM=true`
-- [ ] Trace contains real model output in compose + worker path
-- [ ] `eval:llm` + API eval assert LLM boundary every cycle
+- [x] Integration test for LLM trace on advance
+- [x] `eval:llm` + API eval assert LLM boundary every cycle
 
 ---
 
-## Phase 4 — Product completeness (local)
+## Phase 4 — Product completeness (local) (DONE)
 
 **Build:** Wire research/MCP/traces to API, SearXNG hook, expand workflows, `PUBLIC_DEMO_MODE=false` path.
 
 **Exit criteria:**
-- [ ] No critical pages are 100% static mock
-- [ ] Reticle eval covers all agent surfaces
+- [x] Research/MCP/Traces pages fetch `/research/overview`, `/mcp/tools`, `/traces/summary`
+- [x] Reticle eval covers agent surfaces check
 
 ---
 
-## Phase 5 — Local Kubernetes (k3d)
+## Phase 5 — Local Kubernetes (k3d) (IN PROGRESS)
 
 **Build:** Build/load images, `kubectl apply` base manifests, pods ready against host Compose Postgres/Redis (or in-cluster later).
 

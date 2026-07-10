@@ -185,3 +185,61 @@ class WorkerJob(BaseModel):
     started_at: str | None = None
     finished_at: str | None = None
     error: str | None = None
+
+
+class ResearchPipelineStep(BaseModel):
+    step: str
+    title: str
+    detail: str
+    duration: str
+    status: RunStatus
+
+
+class ResearchOverviewResponse(BaseModel):
+    workflow_id: str
+    active_run_id: str | None
+    runs_total: int
+    documents_total: int
+    pipeline: list[ResearchPipelineStep]
+    workspace_cards: list[str]
+
+
+class McpTool(BaseModel):
+    id: str
+    name: str
+    status: Literal["sandbox", "approval", "live"]
+    detail: str
+    recent_activity: bool = False
+
+
+class McpToolListResponse(BaseModel):
+    total: int
+    tools: list[McpTool]
+
+
+class TraceSummaryBar(BaseModel):
+    label: str
+    count: int
+    width_percent: int
+    duration: str
+
+
+class TraceSummaryEvent(BaseModel):
+    id: str
+    run_id: str
+    run_title: str
+    timestamp: str
+    type: str
+    label: str
+    title: str
+    detail: str
+    agent: str
+
+
+class TraceSummaryResponse(BaseModel):
+    runs_total: int
+    events_total: int
+    llm_events: int
+    total_tokens: int
+    waterfall: list[TraceSummaryBar]
+    recent_events: list[TraceSummaryEvent]

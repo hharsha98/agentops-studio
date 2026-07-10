@@ -159,6 +159,22 @@ def check_workflows_catalog() -> Check:
     return Check("workflows_catalog", ok, f"total={report['total']} ids={sorted(ids)}")
 
 
+def check_agent_surfaces() -> Check:
+    research = request("GET", "/research/overview")
+    mcp = request("GET", "/mcp/tools")
+    traces = request("GET", "/traces/summary")
+    ok = (
+        research.get("workflow_id") == "research-report"
+        and mcp.get("total", 0) >= 5
+        and traces.get("events_total", 0) >= 1
+    )
+    return Check(
+        "agent_surfaces",
+        ok,
+        f"research_runs={research.get('runs_total')} mcp_tools={mcp.get('total')} trace_events={traces.get('events_total')}",
+    )
+
+
 def check_live_llm_trace() -> Check:
     if os.environ.get("ENABLE_LIVE_LLM", "").lower() not in {"1", "true", "yes"}:
         return Check("live_llm_trace", True, "skipped (ENABLE_LIVE_LLM off)")
@@ -188,6 +204,7 @@ def main() -> int:
             check_worker_job_lifecycle(),
             check_benchmark_after_approval(),
             check_knowledge_search(),
+            check_agent_surfaces(),
             check_live_llm_trace(),
         ]
     except urllib.error.URLError as error:

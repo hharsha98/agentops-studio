@@ -135,8 +135,8 @@ from pathlib import Path
 
 status = {
     "updated_at": datetime.now(UTC).isoformat(),
-    "current_phase": 2,
-    "phase_name": "local_docker_prod",
+    "current_phase": 5,
+    "phase_name": "local_k3d",
     "loop_complete": False,
     "note": "Local-first: Compose + LLM + k3d before any AWS/GCP",
 }

@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query
 
+from .agent_surfaces import build_mcp_tools, build_research_overview, build_traces_summary
 from .benchmarks import build_benchmark_report
 from .config import settings
 from .knowledge_base import list_documents, search_knowledge
@@ -13,8 +14,11 @@ from .schemas import (
     BenchmarkReport,
     KnowledgeDocumentListResponse,
     KnowledgeSearchResponse,
+    McpToolListResponse,
     ReplayRunRequest,
+    ResearchOverviewResponse,
     RunListResponse,
+    TraceSummaryResponse,
     WorkerJob,
     WorkflowListResponse,
 )
@@ -144,3 +148,18 @@ def knowledge_search(query: Annotated[str, Query(min_length=1, max_length=160)])
 @app.get("/benchmarks", response_model=BenchmarkReport)
 def benchmarks() -> BenchmarkReport:
     return build_benchmark_report()
+
+
+@app.get("/research/overview", response_model=ResearchOverviewResponse)
+def research_overview() -> ResearchOverviewResponse:
+    return build_research_overview()
+
+
+@app.get("/mcp/tools", response_model=McpToolListResponse)
+def mcp_tools() -> McpToolListResponse:
+    return build_mcp_tools()
+
+
+@app.get("/traces/summary", response_model=TraceSummaryResponse)
+def traces_summary() -> TraceSummaryResponse:
+    return build_traces_summary()

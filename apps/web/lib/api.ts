@@ -386,3 +386,148 @@ export async function createWorkerJob(runId: string): Promise<WorkerJob | null> 
 export async function getWorkerJob(jobId: string): Promise<WorkerJob | null> {
   return fetchJson<WorkerJob>(`/jobs/${jobId}`);
 }
+
+export type ResearchPipelineStep = {
+  step: string;
+  title: string;
+  detail: string;
+  duration: string;
+  status: RunStatus;
+};
+
+export type ResearchOverview = {
+  workflow_id: string;
+  active_run_id: string | null;
+  runs_total: number;
+  documents_total: number;
+  pipeline: ResearchPipelineStep[];
+  workspace_cards: string[];
+};
+
+export type McpTool = {
+  id: string;
+  name: string;
+  status: "sandbox" | "approval" | "live";
+  detail: string;
+  recent_activity: boolean;
+};
+
+export type TraceSummaryBar = {
+  label: string;
+  count: number;
+  width_percent: number;
+  duration: string;
+};
+
+export type TraceSummaryEvent = {
+  id: string;
+  run_id: string;
+  run_title: string;
+  timestamp: string;
+  type: string;
+  label: string;
+  title: string;
+  detail: string;
+  agent: string;
+};
+
+export type TraceSummary = {
+  runs_total: number;
+  events_total: number;
+  llm_events: number;
+  total_tokens: number;
+  waterfall: TraceSummaryBar[];
+  recent_events: TraceSummaryEvent[];
+};
+
+const FALLBACK_MCP_TOOLS: McpTool[] = [
+  { id: "github", name: "GitHub", status: "sandbox", detail: "PR review and branch automation after approval", recent_activity: false },
+  { id: "gmail", name: "Gmail", status: "sandbox", detail: "Draft-only customer and investor emails", recent_activity: false },
+  { id: "slack", name: "Slack", status: "approval", detail: "Leadership brief posts after human gate", recent_activity: false },
+  { id: "searxng", name: "SearXNG", status: "live", detail: "Private web search for research agents", recent_activity: false },
+  { id: "firecrawl", name: "Firecrawl", status: "live", detail: "Full-page extraction with citations", recent_activity: false },
+  { id: "langfuse", name: "Langfuse", status: "live", detail: "Trace waterfall and token analytics", recent_activity: false }
+];
+
+function buildFallbackResearchOverview(): ResearchOverview {
+  const researchRun = FALLBACK_RUNS.find((run) => run.workflow_id === "research-report");
+  const pipeline = researchRun
+    ? researchRun.tasks.slice(0, 4).map((task, index) => ({
+        step: `${index + 1}`.padStart(2, "0"),
+        title: task.title,
+        detail: task.artifact,
+        duration: task.status === "backlog" ? "—" : "live",
+        status: task.status
+      }))
+    : [
+        { step: "01", title: "Query planning", detail: "Market, customer, and internal context", duration: "—", status: "backlog" as const },
+        { step: "02", title: "SearXNG search", detail: "Ranked external sources", duration: "—", status: "backlog" as const }
+      ];
+
+  return {
+    workflow_id: "research-report",
+    active_run_id: researchRun?.id ?? null,
+    runs_total: FALLBACK_RUNS.filter((run) => run.workflow_id === "research-report").length,
+    documents_total: FALLBACK_KNOWLEDGE_DOCUMENTS.filter((doc) => doc.tags.includes("research")).length,
+    pipeline,
+    workspace_cards: ["Search queries", "Extracted pages", "Cited findings", "Confidence notes", "Competitor reports", "Source audit"]
+  };
+}
+
+function buildFallbackTraceSummary(): TraceSummary {
+  const events = FALLBACK_RUNS.flatMap((run) =>
+    run.trace.map((event) => ({
+      id: event.id,
+      run_id: run.id,
+      run_title: run.title,
+      timestamp: event.timestamp,
+      type: event.type,
+      label: event.title,
+      title: event.title,
+      detail: event.detail,
+      agent: event.agent
+    }))
+  );
+
+  const counts = new Map<string, number>();
+  for (const event of events) {
+    counts.set(event.label, (counts.get(event.label) ?? 0) + 1);
+  }
+  const max = Math.max(...counts.values(), 1);
+  const waterfall = Array.from(counts.entries())
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 6)
+    .map(([label, count]) => ({
+      label,
+      count,
+      width_percent: Math.max(12, Math.round((count / max) * 100)),
+      duration: `${count} events`
+    }));
+
+  return {
+    runs_total: FALLBACK_RUNS.length,
+    events_total: events.length,
+    llm_events: events.filter((event) => event.type === "llm_completion").length,
+    total_tokens: FALLBACK_RUNS.reduce((sum, run) => sum + run.metrics.tokens, 0),
+    waterfall,
+    recent_events: events.slice(-12).reverse()
+  };
+}
+
+export async function getResearchOverview(): Promise<ResearchOverview> {
+  const apiResponse = await fetchJson<ResearchOverview>("/research/overview");
+  return apiResponse ?? buildFallbackResearchOverview();
+}
+
+export async function getMcpTools(): Promise<{ total: number; tools: McpTool[] }> {
+  const apiResponse = await fetchJson<{ total: number; tools: McpTool[] }>("/mcp/tools");
+  if (apiResponse) {
+    return apiResponse;
+  }
+  return { total: FALLBACK_MCP_TOOLS.length, tools: FALLBACK_MCP_TOOLS };
+}
+
+export async function getTraceSummary(): Promise<TraceSummary> {
+  const apiResponse = await fetchJson<TraceSummary>("/traces/summary");
+  return apiResponse ?? buildFallbackTraceSummary();
+}

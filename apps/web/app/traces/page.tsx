@@ -1,29 +1,23 @@
 import { PageShell } from "@/components/page-shell";
+import { getTraceSummary } from "@/lib/api";
 
-const TRACE_WATERFALL = [
-  { label: "Prompt trace", width: "88%", duration: "420ms" },
-  { label: "Tool call", width: "64%", duration: "1.8s" },
-  { label: "Token estimate", width: "42%", duration: "18.4k" },
-  { label: "Citation", width: "56%", duration: "6 sources" },
-  { label: "Approval", width: "72%", duration: "Slack gate" },
-  { label: "Error", width: "18%", duration: "0 retries" }
-];
+export default async function TracesPage() {
+  const summary = await getTraceSummary();
 
-export default function TracesPage() {
   return (
     <PageShell
-      description="Langfuse is required for deep inspection, while the app also stores internal run history and audit logs."
+      description={`${summary.events_total} trace events across ${summary.runs_total} runs. ${summary.llm_events} LLM completions and ${summary.total_tokens.toLocaleString()} tokens recorded.`}
       eyebrow="Observability"
       title="Trace every prompt, tool call, artifact, and approval"
     >
       <section className="diagram">
         <h2>Langfuse waterfall preview</h2>
         <div className="waterfall">
-          {TRACE_WATERFALL.map((row) => (
+          {summary.waterfall.map((row) => (
             <div className="waterfall-row" key={row.label}>
               <span className="waterfall-label">{row.label}</span>
               <div className="waterfall-bar-wrap">
-                <div className="waterfall-bar" style={{ width: row.width }} />
+                <div className="waterfall-bar" style={{ width: `${row.width_percent}%` }} />
               </div>
               <span className="waterfall-duration">{row.duration}</span>
             </div>
@@ -32,11 +26,11 @@ export default function TracesPage() {
       </section>
 
       <div className="grid">
-        {["Prompt trace", "Tool call", "Token estimate", "Citation", "Approval", "Error"].map((item) => (
-          <article className="card" key={item}>
-            <small>Trace event</small>
-            <h3>{item}</h3>
-            <p>Operational evidence for how the agent system worked, what changed, and how failures were debugged.</p>
+        {summary.recent_events.map((event) => (
+          <article className="card" key={event.id}>
+            <small>{event.run_title} · {event.agent}</small>
+            <h3>{event.title}</h3>
+            <p>{event.detail}</p>
           </article>
         ))}
       </div>

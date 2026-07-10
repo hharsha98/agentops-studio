@@ -1,0 +1,13 @@
+{
+  "tools": [
+    { "id": "github", "name": "GitHub", "status": "sandbox", "detail": "PR review and branch automation after approval" },
+    { "id": "gmail", "name": "Gmail", "status": "sandbox", "detail": "Draft-only customer and investor emails" },
+    { "id": "slack", "name": "Slack", "status": "approval", "detail": "Leadership brief posts after human gate" },
+    { "id": "searxng", "name": "SearXNG", "status": "live", "detail": "Private web search for research agents" },
+    { "id": "firecrawl", "name": "Firecrawl", "status": "live", "detail": "Full-page extraction with citations" },
+    { "id": "postgres", "name": "Postgres", "status": "sandbox", "detail": "Read-only operational queries" },
+    { "id": "s3", "name": "S3", "status": "sandbox", "detail": "Artifact storage and export" },
+    { "id": "langfuse", "name": "Langfuse", "status": "live", "detail": "Trace waterfall and token analytics" },
+    { "id": "kubernetes", "name": "Kubernetes", "status": "sandbox", "detail": "Deployment status and rollout checks" }
+  ]
+}

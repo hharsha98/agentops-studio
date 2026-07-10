@@ -53,7 +53,7 @@ services:
       MODEL_BASE_URL: http://host.docker.internal:3001/v1
       MODEL_NAME: auto
       MODEL_API_KEY: ${MODEL_API_KEY:-}
-      ENABLE_LIVE_LLM: ${ENABLE_LIVE_LLM:-false}
+      ENABLE_LIVE_LLM: ${ENABLE_LIVE_LLM:-true}
       PUBLIC_DEMO_MODE: "true"
       REQUIRE_REDIS_FOR_READY: "true"
     depends_on:
@@ -81,7 +81,7 @@ services:
       MODEL_BASE_URL: http://host.docker.internal:3001/v1
       MODEL_NAME: auto
       MODEL_API_KEY: ${MODEL_API_KEY:-}
-      ENABLE_LIVE_LLM: ${ENABLE_LIVE_LLM:-false}
+      ENABLE_LIVE_LLM: ${ENABLE_LIVE_LLM:-true}
       PUBLIC_DEMO_MODE: "true"
       REQUIRE_REDIS_FOR_READY: "true"
     depends_on:
