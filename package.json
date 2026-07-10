@@ -10,7 +10,9 @@
     "build:web": "npm run build -w apps/web",
     "lint:web": "npm run lint -w apps/web",
     "typecheck:web": "npm run typecheck -w apps/web",
-    "test:e2e:web": "npm run test:e2e -w apps/web"
+    "test:e2e:web": "npm run test:e2e -w apps/web",
+    "loop": "bash scripts/autonomous-loop.sh",
+    "eval:agent": "AGENTOPS_API_BASE=http://localhost:8001 python3 scripts/agent-outcome-eval.py"
   },
   "overrides": {
     "postcss": "^8.5.16"
