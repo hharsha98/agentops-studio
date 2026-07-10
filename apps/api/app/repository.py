@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, Integer, String, create_engine, select
+from sqlalchemy import JSON, DateTime, Integer, String, create_engine, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from .schemas import AgentRun
@@ -68,6 +68,11 @@ class RunRepository:
             if record is None:
                 return None
             return AgentRun.model_validate(record.payload)
+
+    def is_ready(self) -> bool:
+        with self.engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        return True
 
     def save_run(self, run: AgentRun, *, newest: bool = False) -> AgentRun:
         with self.session_factory() as session:

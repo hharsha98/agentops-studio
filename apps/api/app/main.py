@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Query
 from .benchmarks import build_benchmark_report
 from .config import settings
 from .knowledge_base import list_documents, search_knowledge
-from .replay_store import approve_run, advance_run, create_replay_run, get_run, list_runs, list_workflows
+from .replay_store import approve_run, advance_run, create_replay_run, get_run, list_runs, list_workflows, storage_is_ready
 from .schemas import (
     AgentRun,
     BenchmarkReport,
@@ -22,6 +22,13 @@ app = FastAPI(title=settings.app_name)
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "agentops-api"}
+
+
+@app.get("/ready")
+def ready() -> dict[str, object]:
+    if not storage_is_ready():
+        raise HTTPException(status_code=503, detail="Database is not ready")
+    return {"status": "ready", "checks": {"database": "ok"}}
 
 
 @app.get("/platform")

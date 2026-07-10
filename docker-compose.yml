@@ -10,7 +10,8 @@ services:
     volumes:
       - .:/workspace
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   api:
     image: python:3.12-slim
@@ -26,8 +27,16 @@ services:
     volumes:
       - .:/workspace
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=2).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -39,6 +48,11 @@ services:
       POSTGRES_DB: agentops
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentops -d agentops"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
 
   redis:
     image: redis:7-alpine

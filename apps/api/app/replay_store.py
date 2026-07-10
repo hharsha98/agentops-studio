@@ -46,6 +46,10 @@ def list_runs() -> list[RunSummary]:
     return [summarize_run(run) for run in DEFAULT_REPOSITORY.list_runs()]
 
 
+def storage_is_ready() -> bool:
+    return DEFAULT_REPOSITORY.is_ready()
+
+
 def list_run_details() -> list[AgentRun]:
     return DEFAULT_REPOSITORY.list_runs()
 

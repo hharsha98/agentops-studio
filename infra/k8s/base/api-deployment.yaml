@@ -18,7 +18,28 @@ spec:
           image: agentops-api:local
           ports:
             - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
           env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: agentops-secrets
+                  key: database-url
             - name: MODEL_BASE_URL
               valueFrom:
                 secretKeyRef:
@@ -29,4 +50,3 @@ spec:
                 secretKeyRef:
                   name: agentops-secrets
                   key: model-api-key
-

@@ -744,3 +744,57 @@ Route smoke checks confirmed `/benchmarks` returns a benchmark report and the Be
 
 ### How To Explain It
 I added deterministic evaluation before adding LLM-as-judge. The system now scores real agent runs using transparent rules from run status, citations, approval traces, estimated cost, and observability data. This creates a reliable baseline that can later be extended with LLM judging.
+
+---
+
+## Incident 016: API needed readiness checks for orchestration
+
+### Incident
+The API had a `/health` endpoint, but it did not expose a readiness check that verifies database connectivity.
+
+### Why It Matters
+In Docker and Kubernetes, liveness and readiness mean different things. Liveness checks whether the process is alive. Readiness checks whether the service is ready to receive traffic. A database-backed API should not receive traffic until it can talk to its database.
+
+### Symptoms
+The API could start, but deployment manifests had no probes and Docker Compose could start the web service before the API and database were ready.
+
+### Root Cause
+The first deployment files were scaffolds. After adding database persistence, the deployment layer needed a readiness signal tied to storage.
+
+### Debugging Steps
+We wrote a failing test for:
+
+```bash
+GET /ready
+```
+
+The test first failed with `404 Not Found`. We then added a repository database ping and wired `/ready` to return the database check result.
+
+### Fix
+We added:
+
+- `/ready` API endpoint.
+- Database ping in the repository layer.
+- Docker Compose health checks for API and Postgres.
+- Docker Compose dependency conditions so web waits for a healthy API.
+- Kubernetes readiness and liveness probes for the API deployment.
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+The local API smoke check confirmed `/ready` returns the database readiness payload.
+
+### How To Explain It
+I separated process health from traffic readiness. `/health` tells the orchestrator the API process is alive, while `/ready` proves the API can reach its database. That is important in Kubernetes because a pod can be running but still not ready to handle requests.
