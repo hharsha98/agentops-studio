@@ -473,3 +473,59 @@ The browser test confirmed that the workflow form created a run and opened `/run
 
 ### How To Explain It
 I added a real product loop: a user can choose a workflow, submit an operating goal, create a backend replay run, and inspect that run on the execution board. During debugging, I isolated a port conflict, fixed a Next.js server-action boundary issue, and added a regression test so replay runs always receive unique IDs.
+
+---
+
+## Incident 011: Replay runs needed visible execution progress
+
+### Incident
+After replay creation worked, the run stayed on the first running task. The product needed a way to demonstrate agent execution progress, not only run creation.
+
+### Why It Matters
+This incident explains orchestration state. Orchestration state means the current position of a workflow: which task is running, which tasks are done, which tasks are blocked, and whether human approval is required.
+
+### Symptoms
+A created replay could be opened from the run board, but it did not yet move through agent steps or create new trace events after creation.
+
+### Root Cause
+The first replay feature only created the initial run state. It did not have a transition function that moves a run from one state to the next.
+
+### Debugging Steps
+We wrote failing backend tests for a new endpoint:
+
+```bash
+POST /runs/{run_id}/advance
+```
+
+The first test run failed with `404 Not Found`, which proved the endpoint did not exist yet. After implementation, one test failed because the trace had more events than expected. That revealed a better behavior: recording both `task_completed` and `task_started` gives a clearer audit trail.
+
+### Fix
+We added a deterministic run-advance function that:
+
+- Marks the current running task as done.
+- Starts the next dependency-ready task.
+- Appends trace events for completed and started tasks.
+- Pauses at human approval when the approval task becomes ready.
+- Creates an approval artifact for review.
+
+The frontend run board now has an `Advance run` button that calls the backend and refreshes the selected run.
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+The browser test confirmed that clicking `Advance run` updated the run board and displayed the next agent task.
+
+### How To Explain It
+I added a simple workflow state machine. Each click advances the run by one agent step, updates task states, records trace events, and pauses for human approval when needed. This demonstrates how a multi-agent platform can make execution observable instead of hiding agent work inside one black-box response.

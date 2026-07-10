@@ -814,6 +814,41 @@ h1 {
   font-weight: 800;
 }
 
+.advance-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.advance-panel div {
+  display: grid;
+  gap: 4px;
+}
+
+.advance-panel span,
+.inline-status {
+  color: var(--muted);
+}
+
+.inline-status {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.inline-status.success {
+  color: var(--green);
+}
+
+.inline-status.error {
+  color: #ff8a7c;
+}
+
 .feature-mosaic {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));

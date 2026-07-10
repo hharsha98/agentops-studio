@@ -99,6 +99,56 @@ def test_replay_runs_receive_unique_ids() -> None:
     assert first_response.json()["id"] != second_response.json()["id"]
 
 
+def test_advance_run_moves_tasks_and_appends_trace_events() -> None:
+    create_response = client.post(
+        "/runs/replay",
+        json={
+            "workflow_id": "executive-daily-brief",
+            "goal": "Prepare the operating brief and pause for approval"
+        },
+    )
+    run_id = create_response.json()["id"]
+
+    first_advance = client.post(f"/runs/{run_id}/advance")
+
+    assert first_advance.status_code == 200
+    first_body = first_advance.json()
+    assert first_body["tasks"][0]["status"] == "done"
+    assert first_body["tasks"][1]["status"] == "running"
+    assert len(first_body["trace"]) == 3
+    assert first_body["trace"][-2]["type"] == "task_completed"
+    assert first_body["trace"][-1]["type"] == "task_started"
+
+
+def test_advance_run_pauses_at_approval_with_artifact() -> None:
+    create_response = client.post(
+        "/runs/replay",
+        json={
+            "workflow_id": "executive-daily-brief",
+            "goal": "Prepare the operating brief and pause for approval"
+        },
+    )
+    run_id = create_response.json()["id"]
+
+    client.post(f"/runs/{run_id}/advance")
+    client.post(f"/runs/{run_id}/advance")
+    approval_response = client.post(f"/runs/{run_id}/advance")
+
+    assert approval_response.status_code == 200
+    body = approval_response.json()
+    assert body["status"] == "approval"
+    assert body["tasks"][-1]["status"] == "approval"
+    assert body["artifacts"][0]["requires_approval"] is True
+    assert body["trace"][-1]["type"] == "approval_required"
+
+
+def test_advance_unknown_run_returns_404() -> None:
+    response = client.post("/runs/missing-run/advance")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Run not found"
+
+
 def test_list_workflows_returns_templates() -> None:
     response = client.get("/workflows")
 

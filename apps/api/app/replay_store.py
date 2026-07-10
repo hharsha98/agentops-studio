@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
-from .schemas import AgentRun, ReplayRunRequest, RunSummary, WorkflowTemplate
+from .schemas import AgentRun, ReplayRunRequest, RunArtifact, RunSummary, RunTraceEvent, WorkflowTemplate
 
 
 DATA_PATH = Path(__file__).resolve().parents[3] / "demo-data" / "replay-runs.json"
@@ -93,3 +93,101 @@ def create_replay_run(request: ReplayRunRequest) -> AgentRun | None:
 
     RUNS.insert(0, replay_run)
     return replay_run
+
+
+def _now_iso() -> str:
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _dependencies_are_done(run: AgentRun, dependency_ids: list[str]) -> bool:
+    statuses = {task.id: task.status for task in run.tasks}
+    return all(statuses.get(dependency_id) == "done" for dependency_id in dependency_ids)
+
+
+def _append_trace(run: AgentRun, event_type: str, title: str, detail: str, agent: str) -> None:
+    run.trace.append(
+        RunTraceEvent(
+            id=f"trace-{run.id}-{len(run.trace) + 1}",
+            timestamp=_now_iso(),
+            type=event_type,
+            title=title,
+            detail=detail,
+            agent=agent,
+        )
+    )
+
+
+def _approval_artifact(run: AgentRun) -> RunArtifact:
+    return RunArtifact(
+        id=f"artifact-{run.id}-approval",
+        type="approval_brief",
+        title=f"{run.title} approval brief",
+        summary=f"{run.title} has completed automated preparation for: {run.goal}",
+        citations=["agent-trace", "workflow-template", "retrieved-context"],
+        requires_approval=True,
+    )
+
+
+def advance_run(run_id: str) -> AgentRun | None:
+    run = get_run(run_id)
+    if run is None:
+        return None
+
+    running_task = next((task for task in run.tasks if task.status == "running"), None)
+    if running_task is None:
+        return run
+
+    running_task.status = "done"
+    _append_trace(
+        run,
+        "task_completed",
+        f"{running_task.title} completed",
+        f"{running_task.agent} finished {running_task.artifact.lower()}.",
+        running_task.agent,
+    )
+
+    next_task = next(
+        (
+            task
+            for task in run.tasks
+            if task.status == "backlog" and _dependencies_are_done(run, task.depends_on)
+        ),
+        None,
+    )
+
+    if next_task is None:
+        run.status = "done"
+        run.completed_at = _now_iso()
+        _append_trace(
+            run,
+            "run_completed",
+            "Run completed",
+            "All workflow tasks completed.",
+            running_task.agent,
+        )
+        return run
+
+    if "approval" in next_task.id or "approve" in next_task.title.lower():
+        next_task.status = "approval"
+        run.status = "approval"
+        if not run.artifacts:
+            run.artifacts.append(_approval_artifact(run))
+        _append_trace(
+            run,
+            "approval_required",
+            "Human approval required",
+            f"{next_task.agent} prepared an approval artifact before final delivery.",
+            next_task.agent,
+        )
+        return run
+
+    next_task.status = "running"
+    run.status = "running"
+    _append_trace(
+        run,
+        "task_started",
+        f"{next_task.title} started",
+        f"{next_task.agent} started {next_task.artifact.lower()}.",
+        next_task.agent,
+    )
+    return run

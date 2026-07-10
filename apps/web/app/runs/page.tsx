@@ -1,6 +1,8 @@
 import { PageShell } from "@/components/page-shell";
 import { getRun, getRuns } from "@/lib/api";
 
+import { RunAdvancePanel } from "./run-advance-panel";
+
 const LANES = ["backlog", "running", "approval", "done"] as const;
 
 const LANE_LABELS = {
@@ -36,6 +38,9 @@ export default async function RunsPage({ searchParams }: RunsPageProps) {
           <div><span>Trace events</span><strong>{selectedRun.trace.length}</strong></div>
           <div><span>Artifacts</span><strong>{selectedRun.artifacts.length}</strong></div>
         </div>
+      ) : null}
+      {selectedRun ? (
+        <RunAdvancePanel runId={selectedRun.id} status={selectedRun.status} />
       ) : null}
       <div className="preview-body">
         {LANES.map((lane) => (

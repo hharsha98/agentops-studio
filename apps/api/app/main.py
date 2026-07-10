@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 
 from .config import settings
-from .replay_store import create_replay_run, get_run, list_runs, list_workflows
+from .replay_store import advance_run, create_replay_run, get_run, list_runs, list_workflows
 from .schemas import AgentRun, ReplayRunRequest, RunListResponse, WorkflowListResponse
 
 app = FastAPI(title=settings.app_name)
@@ -43,6 +43,14 @@ def replay_run(request: ReplayRunRequest) -> AgentRun:
     run = create_replay_run(request)
     if run is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
+    return run
+
+
+@app.post("/runs/{run_id}/advance", response_model=AgentRun)
+def advance_replay_run(run_id: str) -> AgentRun:
+    run = advance_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
     return run
 
 

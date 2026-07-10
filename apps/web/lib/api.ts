@@ -177,3 +177,7 @@ export async function getWorkflows(): Promise<WorkflowListResponse> {
 export async function startReplay(input: ReplayRunInput): Promise<AgentRun | null> {
   return postJson<AgentRun>("/runs/replay", input);
 }
+
+export async function advanceRun(runId: string): Promise<AgentRun | null> {
+  return postJson<AgentRun>(`/runs/${runId}/advance`, {});
+}
