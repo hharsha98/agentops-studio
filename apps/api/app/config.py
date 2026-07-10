@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     worker_queue_name: str = "agentops"
     demo_data_dir: str | None = None
+    require_redis_for_ready: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

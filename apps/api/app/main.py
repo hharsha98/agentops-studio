@@ -6,6 +6,7 @@ from .benchmarks import build_benchmark_report
 from .config import settings
 from .knowledge_base import list_documents, search_knowledge
 from .job_dispatcher import WorkerQueueUnavailable, enqueue_worker_job
+from .readiness import redis_is_ready
 from .replay_store import approve_run, advance_run, create_replay_run, get_run, list_runs, list_workflows, storage_is_ready
 from .schemas import (
     AgentRun,
@@ -29,9 +30,20 @@ def health() -> dict[str, str]:
 
 @app.get("/ready")
 def ready() -> dict[str, object]:
+    checks: dict[str, str] = {}
     if not storage_is_ready():
+        checks["database"] = "unavailable"
+    else:
+        checks["database"] = "ok"
+
+    redis_status = "ok" if redis_is_ready() else "unavailable"
+    checks["redis"] = redis_status
+
+    if checks["database"] != "ok":
         raise HTTPException(status_code=503, detail="Database is not ready")
-    return {"status": "ready", "checks": {"database": "ok"}}
+    if settings.require_redis_for_ready and redis_status != "ok":
+        raise HTTPException(status_code=503, detail="Worker queue is not ready")
+    return {"status": "ready", "checks": checks}
 
 
 @app.get("/platform")

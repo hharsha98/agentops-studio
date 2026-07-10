@@ -1,38 +1,47 @@
-# Autonomous execution loop — AgentOps Studio
+# Autonomous delivery loop — AgentOps Studio
 
-**End goal:** Demo-ready product on `cursor/ui-deploy-goal` — all automated gates green, Reticle eval pack + FreeLLMAPI wired, PR open.
+**True end goal:** Fully functional local deployment + AWS-ready stack, with continuous Reticle agent verification.
 
-**Mode:** Autonomous on branch only. **Do not merge to `main`** unless user explicitly approves later.
+**Branch:** `cursor/ui-deploy-goal` only — **no merge to `main`** until you decide.
 
-## Loop cycle (repeat until end goal)
+**Roadmap:** See `.cursor/ROADMAP.md` for all 5 phases.
+
+## Current phase: **1 — Compose truth** (IN PROGRESS)
+
+The old loop only validated a **demo shell** (~85% UI, ~45% local deploy, ~10% AWS). It is **not finished**.
+
+## Loop cycle (runs until Phase 5 complete)
 
 ```
-Setup keys → Run gates → Agent eval → LLM eval (FreeLLMAPI) → Fix gaps → Commit/push → repeat
+setup keys → Redis + worker → pytest → build → E2E → agent eval (9+ checks) → LLM eval → compose smoke → commit branch
 ```
 
-## Gates (must pass each cycle)
+## Gates per cycle
 
 | Gate | Command | Target |
 |------|---------|--------|
 | Reticle keys | `npm run setup:reticle` | FreeLLMAPI + Gemini in Reticle DB |
-| API unit | `cd apps/api && .venv/bin/pytest -q` | 37+ pass |
-| Web E2E | `npm run test:e2e:web` | 14+ pass (port 3010) |
-| Agent outcomes | `npm run eval:agent` | all checks pass |
-| LLM eval | `npm run eval:llm` | 3/3 FreeLLMAPI checks |
-| Web build | `npm run build:web` | success |
-| Compose config | `docker compose config -q` | valid |
+| Redis + RQ worker | auto in `npm run loop` | worker job eval can pass |
+| API unit | `pytest -q` in `apps/api` | 37+ pass |
+| Web E2E | `npm run test:e2e:web` | 14+ pass |
+| Agent outcomes | `npm run eval:agent` | **9 checks** (worker + 3 workflows) |
+| LLM eval | `npm run eval:llm` | 3 FreeLLMAPI checks |
+| Compose smoke | `npm run eval:compose` | worker via Docker |
+| Phase status | `.cursor/PHASE-STATUS.json` | `loop_complete: false` until Phase 5 |
 
-## Reticle (installed)
+## Reticle
 
-- **App:** `tools/reticle/Reticle.app` (v0.2.4 aarch64)
-- **Open:** `open tools/reticle/Reticle.app`
-- **Import evals:** `tools/reticle/evals/agentops-agent-tests.json`
-- **Import scenarios:** `tools/reticle/evals/agentops-scenario-tests.json`
-- **Agent config:** `tools/reticle/agents/agentops-orchestrator.json`
+- Desktop: `open tools/reticle/Reticle.app`
+- Headless mirror: `npm run eval:agent` + `npm run eval:llm`
+- Import pack: `tools/reticle/evals/`
 
 ## Cycle log
 
+### Cycle 1 — 2026-07-10
+- Demo shell gates (pytest, E2E, 5 agent checks) — **not full product**
+
 ### Cycle 2 — 2026-07-10
-- Wired career-ops FreeLLMAPI unified key into Reticle + local `.env`
-- Added `npm run eval:llm` headless LLM eval via FreeLLMAPI proxy
-- Branch-only development — no merge to `main` until user decides
+- FreeLLMAPI wired from career-ops
+
+### Cycle 3 — 2026-07-10
+- Roadmap + Phase 1 started: expanded evals, compose smoke, Redis/worker in loop

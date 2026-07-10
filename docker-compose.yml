@@ -28,6 +28,7 @@ services:
       MODEL_BASE_URL: http://host.docker.internal:3001/v1
       MODEL_NAME: auto
       PUBLIC_DEMO_MODE: "true"
+      REQUIRE_REDIS_FOR_READY: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,6 +53,7 @@ services:
       MODEL_BASE_URL: http://host.docker.internal:3001/v1
       MODEL_NAME: auto
       PUBLIC_DEMO_MODE: "true"
+      REQUIRE_REDIS_FOR_READY: "true"
     depends_on:
       postgres:
         condition: service_healthy

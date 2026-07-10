@@ -3,32 +3,40 @@
 **Branch:** `cursor/ui-deploy-goal`  
 **Theme:** Futuristic AI + Electric Violet (`#a855f7`)  
 **Web:** http://localhost:3010  
-**Status:** UI committed and pushed; final validation in progress.
 
 ## Mission
 
-Ship a demo-ready, visually polished AgentOps Studio on **`cursor/ui-deploy-goal` only** — passes E2E + eval gates. **No merge to `main`** until you review and approve.
+Build a **fully workable** AgentOps Studio: local deployment that mirrors production, **AWS-deployable**, with **continuous Reticle agent verification**. Stay on branch until you approve merge.
 
-## Phase A — UI and branding (done)
-- [x] Futuristic AI theme site-wide
-- [x] Electric Violet accent locked in
-- [x] All product pages polished vs useful-agents.com baseline
-- [x] Committed and pushed to `cursor/ui-deploy-goal`
+**Honest status:** Demo UI is strong; full product + AWS is **not done**. See `.cursor/ROADMAP.md`.
 
-## Phase B — E2E web verification (done)
-- [x] Critical user journeys pass on port 3010
-- [x] Playwright test suite (`apps/web/e2e/`) — 14/14 pass
-- [x] Reticle installed + eval pack at `tools/reticle/`
-- [x] Agent outcome eval script — 5/5 checks pass
+## Phase A — UI and branding ✅
+- [x] Futuristic AI theme, Electric Violet, all pages polished
 
-## Phase C — Deploy validation
-- [x] Backend pytest — 37/37
-- [ ] `docker compose up --build` full smoke (long-running)
-- [x] Autonomous loop script `scripts/autonomous-loop.sh`
+## Phase B — Demo verification ✅
+- [x] Playwright smoke 14/14
+- [x] API pytest 37/37
+- [x] Reticle pack + headless evals
 
-## Phase D — Review readiness (branch only)
-- [x] PR opened for `cursor/ui-deploy-goal` → `main` (for review only)
-- [ ] User reviews branch and decides merge later — **do not auto-merge**
+## Phase C — Local deployment (Phase 1 roadmap) 🔄
+- [ ] Compose full stack proven (`compose-smoke.sh`)
+- [ ] Worker job lifecycle in eval (9 checks)
+- [ ] Redis in `/ready` when required
+- [ ] Production web image
 
-## Progress log
-- **2026-07-10** — Committed + pushed UI branch. Final execution goal created. E2E verification started.
+## Phase D — Real agents + LLM (Phase 3 roadmap)
+- [ ] API calls FreeLLMAPI for at least one step
+- [ ] Reticle LLM-judge on real agent output
+
+## Phase E — AWS (Phase 4 roadmap)
+- [ ] Terraform for EKS + RDS + ElastiCache
+- [ ] CI/CD pipeline
+- [ ] K8s ingress + secrets
+
+## Phase F — Product complete (Phase 5 roadmap)
+- [ ] Research/MCP/traces wired to API
+- [ ] No silent demo fallbacks in prod mode
+
+## Review
+- [x] PR #1 open for review
+- [ ] **Do not merge** until you approve
