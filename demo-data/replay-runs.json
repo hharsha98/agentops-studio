@@ -1,0 +1,285 @@
+{
+  "workflows": [
+    {
+      "id": "executive-daily-brief",
+      "name": "Executive Daily Brief",
+      "description": "Summarize operational activity, cite evidence, and prepare a leadership-ready Slack brief.",
+      "agents": ["Orchestrator", "Deep Research", "Knowledge Analyst", "Compliance Reviewer"],
+      "artifact_type": "Slack brief",
+      "estimated_minutes": 8,
+      "risk_level": "medium"
+    },
+    {
+      "id": "support-triage",
+      "name": "Support Triage",
+      "description": "Classify customer issues, retrieve policy answers, draft replies, and escalate high-risk tickets.",
+      "agents": ["Orchestrator", "Knowledge Analyst", "Tool Operator", "Compliance Reviewer"],
+      "artifact_type": "Gmail drafts",
+      "estimated_minutes": 6,
+      "risk_level": "high"
+    },
+    {
+      "id": "research-report",
+      "name": "Research Report",
+      "description": "Search the web, extract sources, retrieve internal context, and generate a cited research report.",
+      "agents": ["Orchestrator", "Deep Research", "Knowledge Analyst", "Workflow Evaluator"],
+      "artifact_type": "Cited report",
+      "estimated_minutes": 12,
+      "risk_level": "low"
+    }
+  ],
+  "runs": [
+    {
+      "id": "run-executive-brief",
+      "workflow_id": "executive-daily-brief",
+      "title": "Executive daily brief",
+      "goal": "Summarize support risks, revenue signals, product blockers, and hiring updates for leadership.",
+      "status": "approval",
+      "started_at": "2026-07-10T08:00:00Z",
+      "completed_at": null,
+      "agents": ["Orchestrator", "Deep Research", "Knowledge Analyst", "Compliance Reviewer"],
+      "metrics": {
+        "tokens": 18400,
+        "tool_calls": 7,
+        "citations": 6,
+        "estimated_cost_usd": 0.42
+      },
+      "tasks": [
+        {
+          "id": "task-brief-intake",
+          "title": "Parse leadership brief goal",
+          "agent": "Orchestrator",
+          "status": "done",
+          "priority": "high",
+          "depends_on": [],
+          "artifact": "Run plan and success checks"
+        },
+        {
+          "id": "task-brief-research",
+          "title": "Collect operating signals",
+          "agent": "Deep Research",
+          "status": "done",
+          "priority": "high",
+          "depends_on": ["task-brief-intake"],
+          "artifact": "8 extracted sources"
+        },
+        {
+          "id": "task-brief-memory",
+          "title": "Retrieve internal context",
+          "agent": "Knowledge Analyst",
+          "status": "done",
+          "priority": "medium",
+          "depends_on": ["task-brief-intake"],
+          "artifact": "12 policy and runbook chunks"
+        },
+        {
+          "id": "task-brief-approval",
+          "title": "Approve Slack post",
+          "agent": "Compliance Reviewer",
+          "status": "approval",
+          "priority": "high",
+          "depends_on": ["task-brief-research", "task-brief-memory"],
+          "artifact": "Approval note"
+        }
+      ],
+      "trace": [
+        {
+          "id": "trace-brief-1",
+          "timestamp": "2026-07-10T08:00:02Z",
+          "type": "run_started",
+          "title": "Run started",
+          "detail": "Orchestrator created a dependency graph for the daily brief.",
+          "agent": "Orchestrator"
+        },
+        {
+          "id": "trace-brief-2",
+          "timestamp": "2026-07-10T08:01:18Z",
+          "type": "tool_call",
+          "title": "Research tools executed",
+          "detail": "SearXNG and Firecrawl collected external source material.",
+          "agent": "Deep Research"
+        },
+        {
+          "id": "trace-brief-3",
+          "timestamp": "2026-07-10T08:02:30Z",
+          "type": "retrieval",
+          "title": "RAG context retrieved",
+          "detail": "Internal policy, support, and product runbook chunks were attached.",
+          "agent": "Knowledge Analyst"
+        },
+        {
+          "id": "trace-brief-4",
+          "timestamp": "2026-07-10T08:05:12Z",
+          "type": "approval_required",
+          "title": "Human approval required",
+          "detail": "Slack posting is paused until an operator approves the final brief.",
+          "agent": "Compliance Reviewer"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "artifact-brief-slack",
+          "type": "slack_brief",
+          "title": "Leadership Slack brief",
+          "summary": "Support risk is elevated, revenue signals are positive, product blockers are concentrated around onboarding, and hiring pipeline needs follow-up.",
+          "citations": ["support-policy.md", "pipeline-report.pdf", "product-runbook.md"],
+          "requires_approval": true
+        }
+      ]
+    },
+    {
+      "id": "run-support-triage",
+      "workflow_id": "support-triage",
+      "title": "Support triage batch",
+      "goal": "Classify urgent customer issues and prepare safe response drafts.",
+      "status": "running",
+      "started_at": "2026-07-10T09:10:00Z",
+      "completed_at": null,
+      "agents": ["Orchestrator", "Knowledge Analyst", "Tool Operator", "Compliance Reviewer"],
+      "metrics": {
+        "tokens": 12650,
+        "tool_calls": 5,
+        "citations": 4,
+        "estimated_cost_usd": 0.29
+      },
+      "tasks": [
+        {
+          "id": "task-support-classify",
+          "title": "Classify incoming tickets",
+          "agent": "Orchestrator",
+          "status": "done",
+          "priority": "high",
+          "depends_on": [],
+          "artifact": "Priority map"
+        },
+        {
+          "id": "task-support-retrieve",
+          "title": "Retrieve policy answers",
+          "agent": "Knowledge Analyst",
+          "status": "running",
+          "priority": "high",
+          "depends_on": ["task-support-classify"],
+          "artifact": "Policy snippets"
+        },
+        {
+          "id": "task-support-draft",
+          "title": "Draft Gmail replies",
+          "agent": "Tool Operator",
+          "status": "backlog",
+          "priority": "medium",
+          "depends_on": ["task-support-retrieve"],
+          "artifact": "Draft replies"
+        }
+      ],
+      "trace": [
+        {
+          "id": "trace-support-1",
+          "timestamp": "2026-07-10T09:10:01Z",
+          "type": "run_started",
+          "title": "Run started",
+          "detail": "Support triage workflow started from replay template.",
+          "agent": "Orchestrator"
+        },
+        {
+          "id": "trace-support-2",
+          "timestamp": "2026-07-10T09:11:10Z",
+          "type": "classification",
+          "title": "Tickets classified",
+          "detail": "Urgency and risk tags were attached to the batch.",
+          "agent": "Orchestrator"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "artifact-support-priority",
+          "type": "priority_map",
+          "title": "Support priority map",
+          "summary": "Three high-risk customer issues require human review before replies are sent.",
+          "citations": ["support-policy.md", "refund-playbook.docx"],
+          "requires_approval": false
+        }
+      ]
+    },
+    {
+      "id": "run-research-report",
+      "workflow_id": "research-report",
+      "title": "Market research report",
+      "goal": "Research competitors and generate a cited product strategy report.",
+      "status": "done",
+      "started_at": "2026-07-10T07:20:00Z",
+      "completed_at": "2026-07-10T07:32:00Z",
+      "agents": ["Orchestrator", "Deep Research", "Knowledge Analyst", "Workflow Evaluator"],
+      "metrics": {
+        "tokens": 22100,
+        "tool_calls": 9,
+        "citations": 11,
+        "estimated_cost_usd": 0.58
+      },
+      "tasks": [
+        {
+          "id": "task-research-plan",
+          "title": "Plan research questions",
+          "agent": "Orchestrator",
+          "status": "done",
+          "priority": "high",
+          "depends_on": [],
+          "artifact": "Research plan"
+        },
+        {
+          "id": "task-research-web",
+          "title": "Search and extract competitor sources",
+          "agent": "Deep Research",
+          "status": "done",
+          "priority": "high",
+          "depends_on": ["task-research-plan"],
+          "artifact": "11 cited sources"
+        },
+        {
+          "id": "task-research-report",
+          "title": "Generate strategy report",
+          "agent": "Knowledge Analyst",
+          "status": "done",
+          "priority": "medium",
+          "depends_on": ["task-research-web"],
+          "artifact": "Cited report"
+        }
+      ],
+      "trace": [
+        {
+          "id": "trace-research-1",
+          "timestamp": "2026-07-10T07:20:04Z",
+          "type": "run_started",
+          "title": "Run started",
+          "detail": "Research workflow started with competitor analysis goal.",
+          "agent": "Orchestrator"
+        },
+        {
+          "id": "trace-research-2",
+          "timestamp": "2026-07-10T07:24:31Z",
+          "type": "tool_call",
+          "title": "Sources extracted",
+          "detail": "Firecrawl extracted competitor pages and analyst commentary.",
+          "agent": "Deep Research"
+        },
+        {
+          "id": "trace-research-3",
+          "timestamp": "2026-07-10T07:31:40Z",
+          "type": "evaluation",
+          "title": "Report evaluated",
+          "detail": "Workflow evaluator confirmed citations, structure, and required sections.",
+          "agent": "Workflow Evaluator"
+        }
+      ],
+      "artifacts": [
+        {
+          "id": "artifact-research-report",
+          "type": "research_report",
+          "title": "Competitor strategy report",
+          "summary": "The report compares positioning, pricing, workflow depth, and integration strategy across leading agent platforms.",
+          "citations": ["competitor-page-1.html", "analyst-note.pdf", "product-roadmap.md"],
+          "requires_approval": false
+        }
+      ]
+    }
+  ]
+}

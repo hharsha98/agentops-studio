@@ -342,3 +342,134 @@ Typecheck, lint, and production build passed. The browser confirmed the new page
 
 ### How To Explain It
 I changed the page from a generic landing page into a product surface that demonstrates the architecture of a multi-agent system. The UI now shows how goals become agent graphs, how tools and memory are used, and how teams inspect, approve, and evaluate outputs.
+
+---
+
+## Incident 009: Frontend moved from static mockups to backend-backed replay data
+
+### Incident
+The dashboard, workflow page, and run replay page originally showed mostly static UI content. We needed the product to behave more like a real agent platform by reading workflow and run data from an API.
+
+### Why It Matters
+This incident explains the difference between a visual prototype and an application. A prototype can look good, but an application needs APIs, data models, tests, and error handling.
+
+### Symptoms
+The UI could describe agent operations, but it did not yet prove that the frontend could consume backend data for runs, tasks, traces, artifacts, and workflow templates.
+
+### Root Cause
+The first project slice focused on product shell and visual structure. The next development step was to create a backend contract. A backend contract is the agreed shape of data that the API sends and the frontend receives.
+
+### Debugging Steps
+We wrote backend tests first:
+
+```bash
+pytest tests/test_runs.py -q
+```
+
+The tests failed with 404 responses because the run and workflow endpoints did not exist yet. That was expected in test-driven development, where a failing test confirms the missing behavior before implementation.
+
+### Fix
+We added a replay data file, typed FastAPI schemas, an in-memory replay store, and API routes for runs and workflows. The frontend now fetches these routes and falls back to the same local demo data if the API is offline.
+
+The new backend routes are:
+
+```text
+GET /runs
+GET /runs/{run_id}
+POST /runs/replay
+GET /workflows
+```
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+We also checked the local pages with `curl`, which is a terminal tool for requesting a web page or API endpoint:
+
+```bash
+curl http://localhost:3000/dashboard
+curl http://localhost:3000/runs
+curl http://localhost:3000/workflows
+```
+
+### How To Explain It
+I converted static product screens into backend-backed screens. I defined typed API schemas, wrote tests for the run and workflow endpoints, added seeded replay data, and connected the Next.js frontend to the FastAPI backend with a local fallback so the demo still works even when the API server is not running.
+
+---
+
+## Incident 010: Workflow replay button did not update the UI at first
+
+### Incident
+We added a workflow replay button so the frontend could start a backend run, but the first browser test did not show a success message.
+
+### Why It Matters
+This incident teaches three production concepts: unique IDs, environment configuration, and server-action boundaries. A server action is a Next.js function that runs on the server when a form is submitted.
+
+### Symptoms
+The workflow page rendered the replay forms, but submitting the form did not show the expected success panel. A direct API request also returned `404 Not Found` on port `8000`.
+
+### Root Cause
+There were two separate issues:
+
+1. Port `8000` was already used by an older FastAPI process from another project, so the frontend was calling the wrong API.
+2. The Next.js server-action file exported a normal object as well as an async function. Next.js requires `"use server"` files to export only async functions.
+
+We also found that replay IDs were deterministic, which means repeated clicks on the same workflow could create duplicate run IDs.
+
+### Debugging Steps
+We checked which process owned the API port:
+
+```bash
+lsof -iTCP:8000 -sTCP:LISTEN -P -n
+ps -p <pid> -o pid,ppid,command
+```
+
+We tested the API directly:
+
+```bash
+curl -X POST http://localhost:8001/runs/replay \
+  -H 'Content-Type: application/json' \
+  -d '{"workflow_id":"executive-daily-brief","goal":"Prepare a leadership daily brief for pipeline, support, and delivery risks."}'
+```
+
+We also checked the Next.js dev server logs, which showed the server-action export error.
+
+### Fix
+We generated unique replay IDs with a short UUID suffix. We moved the initial UI state object out of the `"use server"` file and kept that file limited to the async replay action.
+
+For local verification, we ran this project's API on port `8001` and restarted the web app with:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8001 npm run dev -w apps/web -- --port 3000
+```
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+The browser test confirmed that the workflow form created a run and opened `/runs?runId=<created-run-id>` with the new run details visible.
+
+### How To Explain It
+I added a real product loop: a user can choose a workflow, submit an operating goal, create a backend replay run, and inspect that run on the execution board. During debugging, I isolated a port conflict, fixed a Next.js server-action boundary issue, and added a regression test so replay runs always receive unique IDs.

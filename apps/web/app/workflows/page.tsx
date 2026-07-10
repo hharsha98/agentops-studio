@@ -1,6 +1,11 @@
 import { PageShell } from "@/components/page-shell";
+import { getWorkflows } from "@/lib/api";
 
-export default function WorkflowsPage() {
+import { ReplayLauncher } from "./replay-launcher";
+
+export default async function WorkflowsPage() {
+  const workflowsResponse = await getWorkflows();
+
   return (
     <PageShell
       eyebrow="Workflow canvas"
@@ -16,6 +21,7 @@ export default function WorkflowsPage() {
           <div className="flow-step"><strong>Outcome</strong><br /><small>Draft, report, PR, or brief</small></div>
         </div>
       </section>
+      <ReplayLauncher workflows={workflowsResponse.workflows} />
     </PageShell>
   );
 }
