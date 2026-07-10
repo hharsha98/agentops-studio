@@ -149,6 +149,53 @@ def test_advance_unknown_run_returns_404() -> None:
     assert response.json()["detail"] == "Run not found"
 
 
+def test_approve_run_completes_approval_state_run() -> None:
+    create_response = client.post(
+        "/runs/replay",
+        json={
+            "workflow_id": "executive-daily-brief",
+            "goal": "Prepare the operating brief for final approval"
+        },
+    )
+    run_id = create_response.json()["id"]
+
+    client.post(f"/runs/{run_id}/advance")
+    client.post(f"/runs/{run_id}/advance")
+    client.post(f"/runs/{run_id}/advance")
+    approval_response = client.post(f"/runs/{run_id}/approve")
+
+    assert approval_response.status_code == 200
+    body = approval_response.json()
+    assert body["status"] == "done"
+    assert body["completed_at"] is not None
+    assert body["tasks"][-1]["status"] == "done"
+    assert body["artifacts"][0]["requires_approval"] is False
+    assert body["trace"][-1]["type"] == "approval_completed"
+
+
+def test_approve_running_run_returns_409() -> None:
+    create_response = client.post(
+        "/runs/replay",
+        json={
+            "workflow_id": "support-triage",
+            "goal": "Keep the run in progress before approval"
+        },
+    )
+    run_id = create_response.json()["id"]
+
+    response = client.post(f"/runs/{run_id}/approve")
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Run is not waiting for approval"
+
+
+def test_approve_unknown_run_returns_404() -> None:
+    response = client.post("/runs/missing-run/approve")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Run not found"
+
+
 def test_list_workflows_returns_templates() -> None:
     response = client.get("/workflows")
 

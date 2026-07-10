@@ -197,3 +197,30 @@ def advance_run(run_id: str, *, repository: RunRepository = DEFAULT_REPOSITORY) 
         next_task.agent,
     )
     return repository.save_run(run)
+
+
+def approve_run(run_id: str, *, repository: RunRepository = DEFAULT_REPOSITORY) -> AgentRun | None:
+    run = get_run(run_id, repository=repository)
+    if run is None:
+        return None
+
+    if run.status != "approval":
+        return run
+
+    for task in run.tasks:
+        if task.status == "approval":
+            task.status = "done"
+
+    for artifact in run.artifacts:
+        artifact.requires_approval = False
+
+    run.status = "done"
+    run.completed_at = _now_iso()
+    _append_trace(
+        run,
+        "approval_completed",
+        "Approval completed",
+        "Human approval completed and the workflow outcome was released.",
+        "Approval Desk",
+    )
+    return repository.save_run(run)

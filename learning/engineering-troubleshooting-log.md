@@ -585,3 +585,57 @@ The API restart smoke test confirmed that a created replay run survived process 
 
 ### How To Explain It
 I moved run state from in-memory storage into a repository backed by SQLAlchemy. Locally the app can use SQLite for speed, while Docker Compose uses Postgres, which matches the production deployment direction. This shows that the agent workflow state survives API restarts, which is important for Kubernetes-based systems.
+
+---
+
+## Incident 013: Approval runs needed an explicit completion action
+
+### Incident
+Runs could pause at human approval, but there was no way to approve the artifact and complete the workflow outcome.
+
+### Why It Matters
+Human-in-the-loop approval is important for production AI systems. A human-in-the-loop step means the system pauses before a risky or visible action and waits for a person to review and approve it.
+
+### Symptoms
+The run board could reach `approval` status and show an approval artifact, but the only available control was still execution advancement.
+
+### Root Cause
+The first workflow state machine handled automated task progress but did not yet model the human decision that releases the outcome.
+
+### Debugging Steps
+We wrote failing API tests for:
+
+```bash
+POST /runs/{run_id}/approve
+```
+
+The tests first failed with `404 Not Found`, proving the approval endpoint did not exist. We then added the backend transition and verified the browser flow from an approval run.
+
+### Fix
+We added an approval endpoint and frontend approval action. When a run is waiting for approval, the UI now shows `Approve outcome`. Approving the run:
+
+- Marks approval tasks as done.
+- Marks approval artifacts as reviewed.
+- Sets the run status to done.
+- Adds an `approval_completed` trace event.
+- Persists the completed run state in the database.
+
+### Verification
+Backend tests passed:
+
+```bash
+pytest -q
+```
+
+Frontend checks passed:
+
+```bash
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+```
+
+The browser test confirmed that `Approve outcome` moved the run to `Done` and displayed the `approval_completed` trace event.
+
+### How To Explain It
+I completed the human approval loop. The system can now create a run, execute agent steps, pause for review, and release the outcome only after approval. That is closer to how companies expect agentic systems to work in real operations, where auditability and control matter.

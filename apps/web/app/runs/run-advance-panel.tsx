@@ -3,8 +3,8 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { advanceRunAction } from "./actions";
-import type { AdvanceActionState } from "./actions";
+import { approveRunAction, advanceRunAction } from "./actions";
+import type { AdvanceActionState, ApprovalActionState } from "./actions";
 
 type RunAdvancePanelProps = {
   runId: string;
@@ -16,31 +16,50 @@ const initialAdvanceState: AdvanceActionState = {
   message: ""
 };
 
-function AdvanceButton({ disabled }: { disabled: boolean }) {
+const initialApprovalState: ApprovalActionState = {
+  status: "idle",
+  message: ""
+};
+
+function ActionButton({ disabled, idleText, pendingText }: { disabled: boolean; idleText: string; pendingText: string }) {
   const { pending } = useFormStatus();
 
   return (
     <button className="button primary" disabled={disabled || pending} type="submit">
-      {pending ? "Advancing..." : "Advance run"}
+      {pending ? pendingText : idleText}
     </button>
   );
 }
 
 export function RunAdvancePanel({ runId, status }: RunAdvancePanelProps) {
-  const [state, formAction] = useActionState(advanceRunAction, initialAdvanceState);
+  const [advanceState, advanceFormAction] = useActionState(advanceRunAction, initialAdvanceState);
+  const [approvalState, approvalFormAction] = useActionState(approveRunAction, initialApprovalState);
   const isTerminal = status === "done" || status === "failed";
+  const isApproval = status === "approval";
 
   return (
-    <form action={formAction} className="advance-panel">
-      <input name="runId" type="hidden" value={runId} />
+    <section className="advance-panel">
       <div>
         <strong>Execution control</strong>
-        <span>Advance the selected run one agent step and refresh the trace.</span>
+        <span>{isApproval ? "Approve the reviewed artifact and release the workflow outcome." : "Advance the selected run one agent step and refresh the trace."}</span>
       </div>
-      <AdvanceButton disabled={isTerminal} />
-      {state.status !== "idle" ? (
-        <p className={`inline-status ${state.status}`} role="status">{state.message}</p>
+      {isApproval ? (
+        <form action={approvalFormAction}>
+          <input name="runId" type="hidden" value={runId} />
+          <ActionButton disabled={isTerminal} idleText="Approve outcome" pendingText="Approving..." />
+        </form>
+      ) : (
+        <form action={advanceFormAction}>
+          <input name="runId" type="hidden" value={runId} />
+          <ActionButton disabled={isTerminal} idleText="Advance run" pendingText="Advancing..." />
+        </form>
+      )}
+      {advanceState.status !== "idle" ? (
+        <p className={`inline-status ${advanceState.status}`} role="status">{advanceState.message}</p>
       ) : null}
-    </form>
+      {approvalState.status !== "idle" ? (
+        <p className={`inline-status ${approvalState.status}`} role="status">{approvalState.message}</p>
+      ) : null}
+    </section>
   );
 }

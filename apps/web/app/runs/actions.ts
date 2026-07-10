@@ -2,12 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
-import { advanceRun } from "@/lib/api";
+import { advanceRun, approveRun } from "@/lib/api";
 
 export type AdvanceActionState = {
   status: "idle" | "success" | "error";
   message: string;
 };
+
+export type ApprovalActionState = AdvanceActionState;
 
 export async function advanceRunAction(
   _previousState: AdvanceActionState,
@@ -51,5 +53,36 @@ export async function advanceRunAction(
   return {
     status: "success",
     message: "Run advanced to the next agent task."
+  };
+}
+
+export async function approveRunAction(
+  _previousState: ApprovalActionState,
+  formData: FormData
+): Promise<ApprovalActionState> {
+  const runId = String(formData.get("runId") ?? "").trim();
+
+  if (!runId) {
+    return {
+      status: "error",
+      message: "Choose a run before approving execution."
+    };
+  }
+
+  const run = await approveRun(runId);
+
+  if (!run) {
+    return {
+      status: "error",
+      message: "The run could not be approved. Check that it is waiting for approval."
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/runs");
+
+  return {
+    status: "success",
+    message: "Approval completed and the workflow outcome was released."
   };
 }

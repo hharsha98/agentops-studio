@@ -181,3 +181,7 @@ export async function startReplay(input: ReplayRunInput): Promise<AgentRun | nul
 export async function advanceRun(runId: string): Promise<AgentRun | null> {
   return postJson<AgentRun>(`/runs/${runId}/advance`, {});
 }
+
+export async function approveRun(runId: string): Promise<AgentRun | null> {
+  return postJson<AgentRun>(`/runs/${runId}/approve`, {});
+}
