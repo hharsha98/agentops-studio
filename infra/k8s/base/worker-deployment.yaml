@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentops-worker
+  namespace: agentops-studio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentops-worker
+  template:
+    metadata:
+      labels:
+        app: agentops-worker
+    spec:
+      containers:
+        - name: worker
+          image: agentops-api:local
+          command: ["sh", "-c"]
+          args: ['rq worker --url "$REDIS_URL" "$WORKER_QUEUE_NAME"']
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: agentops-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: agentops-secrets
+                  key: redis-url
+            - name: WORKER_QUEUE_NAME
+              value: agentops
+            - name: MODEL_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: agentops-secrets
+                  key: model-base-url
+            - name: MODEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: agentops-secrets
+                  key: model-api-key

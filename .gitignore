@@ -17,3 +17,10 @@ coverage/
 *.log
 *.tsbuildinfo
 *.egg-info/
+*.db
+test-results/
+playwright-report/
+blob-report/
+tools/reticle/*.tar.gz
+tools/reticle/Reticle.app/
+.cursor/eval-reports/

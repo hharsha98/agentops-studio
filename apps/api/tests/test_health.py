@@ -13,6 +13,16 @@ def test_health_returns_ok() -> None:
     assert response.json() == {"status": "ok", "service": "agentops-api"}
 
 
+def test_ready_checks_database_connection() -> None:
+    response = client.get("/ready")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ready"
+    assert body["checks"]["database"] == "ok"
+    assert "redis" in body["checks"]
+
+
 def test_platform_summary_matches_portfolio_plan() -> None:
     response = client.get("/platform")
 
@@ -23,4 +33,3 @@ def test_platform_summary_matches_portfolio_plan() -> None:
     assert body["workflows"] == 10
     assert "AWS EKS" in body["cloud_paths"]
     assert "GCP GKE" in body["cloud_paths"]
-

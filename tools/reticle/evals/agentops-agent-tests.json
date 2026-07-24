@@ -1,0 +1,62 @@
+[
+  {
+    "task": "Given workflow executive-daily-brief, create a replay run with a leadership goal and verify the run reaches running or approval with trace events.",
+    "assertions": [
+      {
+        "type": "contains",
+        "target": "run_started",
+        "description": "Trace must include run_started event"
+      },
+      {
+        "type": "contains",
+        "target": "executive-daily-brief",
+        "description": "Workflow id must match template"
+      }
+    ]
+  },
+  {
+    "task": "Advance an executive brief replay through steps until approval gate, then approve and verify status is done.",
+    "assertions": [
+      {
+        "type": "equals",
+        "target": "done",
+        "description": "Final run status must be done after approval"
+      },
+      {
+        "type": "contains",
+        "target": "workflow_success",
+        "description": "Benchmark must score workflow success"
+      }
+    ]
+  },
+  {
+    "task": "Search company knowledge for support approval context and return cited chunks.",
+    "assertions": [
+      {
+        "type": "contains",
+        "target": "score",
+        "description": "Knowledge search returns scored results"
+      },
+      {
+        "type": "contains",
+        "target": "citation",
+        "description": "Results include citation field"
+      }
+    ]
+  },
+  {
+    "task": "Load benchmark report and verify average score and category coverage for replay runs.",
+    "assertions": [
+      {
+        "type": "contains",
+        "target": "citation_quality",
+        "description": "Benchmark categories include citation_quality"
+      },
+      {
+        "type": "contains",
+        "target": "approval_safety",
+        "description": "Benchmark categories include approval_safety"
+      }
+    ]
+  }
+]

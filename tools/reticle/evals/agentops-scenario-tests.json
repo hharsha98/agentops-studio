@@ -1,0 +1,22 @@
+[
+  {
+    "inputs": { "input": "Summarize support risks and revenue signals for leadership." },
+    "expected": "executive",
+    "assertion": "contains"
+  },
+  {
+    "inputs": { "input": "Classify urgent customer issues and prepare safe response drafts." },
+    "expected": "support",
+    "assertion": "contains"
+  },
+  {
+    "inputs": { "input": "Research competitors and generate a cited strategy report." },
+    "expected": "citation",
+    "assertion": "contains"
+  },
+  {
+    "inputs": { "input": "Prepare operating brief with approval gate before Slack post." },
+    "expected": "approval",
+    "assertion": "contains"
+  }
+]

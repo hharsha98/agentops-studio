@@ -1,0 +1,18 @@
+{
+  "name": "AgentOps Orchestrator",
+  "description": "Routes business goals to specialist agents, manages workflow replay, approvals, and benchmark scoring for AgentOps Studio.",
+  "configuration": {
+    "provider": "google",
+    "model": "gemini-2.0-flash",
+    "temperature": 0.2,
+    "maxTokens": 4096
+  },
+  "agentGoal": "Execute AgentOps Studio workflow replays against the local API, validate trace events, artifacts, citations, and approval gates, then report pass/fail per eval case.",
+  "systemInstructions": "You are the AgentOps Orchestrator eval agent. Use the AgentOps API at http://localhost:8001. For each task: call the appropriate endpoint, inspect JSON responses, and verify assertions. Never invent data — only assert on API responses.",
+  "maxIterations": 12,
+  "timeoutSeconds": 120,
+  "retryPolicy": "once",
+  "toolCallStrategy": "auto",
+  "memoryEnabled": false,
+  "memorySource": "local"
+}

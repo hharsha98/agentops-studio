@@ -9,7 +9,16 @@
     "dev:web": "npm run dev -w apps/web",
     "build:web": "npm run build -w apps/web",
     "lint:web": "npm run lint -w apps/web",
-    "typecheck:web": "npm run typecheck -w apps/web"
+    "typecheck:web": "npm run typecheck -w apps/web",
+    "test:e2e:web": "npm run test:e2e -w apps/web",
+    "loop": "bash scripts/autonomous-loop.sh",
+    "eval:agent": "AGENTOPS_API_BASE=http://localhost:8001 python3 scripts/agent-outcome-eval.py",
+    "eval:llm": "python3 scripts/reticle-freellmapi-eval.py",
+    "eval:compose": "bash scripts/compose-smoke.sh",
+    "eval:k8s": "bash scripts/k8s-local-smoke.sh",
+    "eval:functional": "bash scripts/functional-audit.sh",
+    "build:images": "bash scripts/build-images.sh",
+    "setup:reticle": "python3 scripts/setup-reticle-keys.py"
   },
   "overrides": {
     "postcss": "^8.5.16"

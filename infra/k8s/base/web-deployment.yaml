@@ -17,8 +17,11 @@ spec:
         - name: web
           image: agentops-web:local
           ports:
-            - containerPort: 3000
+            - containerPort: 3010
           env:
+            - name: PORT
+              value: "3010"
+            - name: API_BASE_URL
+              value: http://agentops-api:8000
             - name: NEXT_PUBLIC_API_BASE_URL
               value: http://agentops-api:8000
-

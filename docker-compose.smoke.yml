@@ -1,0 +1,14 @@
+# Override for automated smoke tests when host ports 5432/6379/8000/3010 are busy.
+services:
+  postgres:
+    ports: !reset []
+  redis:
+    ports: !reset []
+  api:
+    ports: !override
+      - "8010:8000"
+  web:
+    ports: !override
+      - "3011:3010"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8010
