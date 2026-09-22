@@ -38,13 +38,12 @@ def test_platform_summary_matches_portfolio_plan(client: TestClient) -> None:
     assert body["product"] == "studio"
     assert body["agents"] == 6
     assert body["workflows"] >= 4
+    assert "Native local" in body["cloud_paths"]
     assert "AWS EKS" in body["cloud_paths"]
     assert "GCP GKE" in body["cloud_paths"]
     assert "multi-agent orchestration" in body["capabilities"]
     assert "Agent Fleet" in body["complements"]
     assert "Contabo" in body["complements"]
-    # Studio must not claim to *be* the Contabo Fleet product.
-    assert body["product"] != "fleet"
 
 
 def test_knowledge_is_seeded_and_queryable(client: TestClient) -> None:

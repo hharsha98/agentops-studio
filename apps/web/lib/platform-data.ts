@@ -310,12 +310,12 @@ export const deploymentProof = [
   },
   {
     icon: "cloud",
-    title: "Local / managed Kubernetes",
-    text: "k3d practice plus Terraform blueprint READMEs for managed cluster paths."
+    title: "Local Kubernetes (k3d)",
+    text: "Practice pods, services, ingress, secrets, and rollouts before managed environments."
   },
   {
     icon: "cloud",
-    title: "Portable Hosting",
-    text: "Vendor-portable deployment model with reusable Kubernetes manifests and provider-specific infrastructure modules."
+    title: "Managed K8s + portable hosting",
+    text: "Terraform blueprint READMEs for AWS EKS / GCP GKE style paths; manifests stay portable."
   }
 ];

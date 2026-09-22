@@ -42,7 +42,7 @@ echo
 python3 -c '
 import json,sys
 t=json.load(sys.stdin)
-assert t["count"]>=3, t
+assert t["count"]>=5, t
 print("spans=", t["count"], sep="")
 ' <<<"$TRACES_JSON"
 
@@ -66,7 +66,8 @@ import json,sys
 h=json.load(sys.stdin)["hits"]
 assert len(h)>=1
 text=h[0]["text"].lower()
-assert "refund" in text or "14" in text, h[0]
+assert "refund" in text, h[0]
+assert h[0]["title"].lower().find("support") >= 0 or "policy" in h[0]["title"].lower(), h[0]
 print("rag hits=", len(h), " top=", h[0]["title"], sep="")
 ' <<<"$RAG_JSON"
 
