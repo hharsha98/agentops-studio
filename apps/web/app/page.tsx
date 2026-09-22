@@ -37,9 +37,9 @@ import {
   executionStages,
   featureCards,
   proofMetrics,
+  runnableWorkflows,
   specializedAgents,
-  techStack,
-  workflowOutcomes
+  techStack
 } from "@/lib/platform-data";
 
 const iconMap = {
@@ -83,9 +83,9 @@ export default function HomePage() {
           <div className="eyebrow">AgentOps Studio · portable multi-agent ops lab</div>
           <h1>Run agent workforces from goal to approved outcome.</h1>
           <p className="hero-copy">
-            Coordinate specialist agents, RAG memory with citations, MCP-style tools, approval gates,
-            and run traces — then ship the same stack with Docker Compose or Kubernetes scaffolding.
-            Complements Agent Fleet; this is the studio lab, not the Contabo Fleet product.
+            Coordinate specialist agents, cited RAG, an MCP sandbox, approval gates, and run traces.
+            The public demo is native Node and Python behind Caddy. Compose and Kubernetes notes stay
+            optional. This is AgentOps Studio, not the Contabo Agent Fleet product.
           </p>
           <div className="hero-actions">
             <Link className="button primary" href="/dashboard">
@@ -117,7 +117,7 @@ export default function HomePage() {
               <strong>Run AO-204</strong>
               <small>Executive daily brief</small>
             </div>
-            <span className="live-pill">Streaming</span>
+              <span className="live-pill">Preview</span>
           </div>
           <div className="ops-grid">
             <div className="chat-stream">
@@ -128,11 +128,11 @@ export default function HomePage() {
               </div>
               <div className="chat-message agent">
                 <span>Orchestrator</span>
-                Created 6-step DAG. Assigning research, retrieval, analysis, compliance, and brief agents.
+                Planned a specialist DAG: knowledge, research, compliance, then a sandbox brief.
               </div>
               <div className="chat-message agent">
-                <span>Research Agent</span>
-                SearXNG and Firecrawl completed. 8 sources extracted, 6 citations attached.
+                <span>Knowledge Analyst</span>
+                Retrieved cited policy chunks. Web search used the offline demo fallback.
               </div>
             </div>
 
@@ -154,10 +154,10 @@ export default function HomePage() {
 
             <div className="run-inspector">
               <div className="panel-label">Run inspector</div>
-              <div className="inspector-row"><span>Trace</span><strong>24 events</strong></div>
-              <div className="inspector-row"><span>Tools</span><strong>7 calls</strong></div>
-              <div className="inspector-row"><span>Tokens</span><strong>18.4k</strong></div>
-              <div className="inspector-row warning"><span>Approval</span><strong>Slack post</strong></div>
+              <div className="inspector-row"><span>Trace</span><strong>Live spans</strong></div>
+              <div className="inspector-row"><span>Tools</span><strong>MCP sandbox</strong></div>
+              <div className="inspector-row"><span>Mode</span><strong>Deterministic</strong></div>
+              <div className="inspector-row warning"><span>Approval</span><strong>Slack draft</strong></div>
             </div>
 
             <div className="mini-board">
@@ -175,10 +175,10 @@ export default function HomePage() {
       <section className="section section-band">
         <div className="section-heading">
           <span className="section-kicker">Runtime architecture</span>
-          <h2>Everything required to operate production-grade agent systems.</h2>
+          <h2>What this demo actually runs.</h2>
           <p className="section-lead">
-            The platform is organized around the responsibilities AI engineers are expected to own:
-            orchestration, tools, memory, evaluation, observability, approvals, and deployment.
+            Orchestration, sandbox tools, cited retrieval, approval gates, traces, and a native
+            public-host path. Optional Compose and cluster notes are labeled as scaffolding.
           </p>
         </div>
         <div className="feature-mosaic">
@@ -221,8 +221,8 @@ export default function HomePage() {
           <span className="section-kicker">Workflow execution</span>
           <h2>Goal in. Agent graph out. Every step observable.</h2>
           <p className="section-lead">
-            A user goal becomes a dependency graph. Agents run in parallel where possible, pause for human
-            approval when needed, and produce evidence-backed artifacts.
+            A user goal becomes an ordered specialist run. Agents execute one after another, pause for
+            human approval when the workflow requires it, and produce evidence-backed artifacts.
           </p>
         </div>
         <div className="execution-grid">
@@ -239,14 +239,14 @@ export default function HomePage() {
       <section className="section">
         <div className="section-heading compact">
           <span className="section-kicker">Business workflows</span>
-          <h2>10 workflows that create reviewable artifacts.</h2>
+          <h2>Four workflows you can run in this demo.</h2>
           <p className="section-lead">
-            The outcomes are designed to be visible and inspectable: reports, drafts, decision memos,
-            dashboards, pull requests, approval notes, and leadership briefs.
+            Each one is a live specialist DAG. Start it from Workflows or the Dashboard. Other business
+            workflows are not wired up here.
           </p>
         </div>
         <div className="outcome-grid">
-          {workflowOutcomes.map((outcome, index) => {
+          {runnableWorkflows.map((outcome, index) => {
             const Icon = getIcon(outcome.icon);
             return (
               <article className={`outcome-card accent-${outcome.accent}`} key={outcome.title}>
@@ -265,32 +265,33 @@ export default function HomePage() {
       <section className="section split-section">
         <div className="panel-large intelligence-panel">
           <span className="section-kicker">Research and RAG</span>
-          <h2>Ground every agent answer in retrieved evidence.</h2>
+          <h2>Ground answers in the seeded knowledge base.</h2>
           <p>
-            SearXNG handles private search, Firecrawl extracts clean page content, and pgvector retrieves
-            document chunks so outputs can include citations instead of unsupported claims.
+            Retrieval is TF-IDF over the markdown in demo-data/knowledge. Citations are attached to
+            workflow steps. SearXNG is optional; without it, web search returns a deterministic
+            fallback. Firecrawl and pgvector are not running.
           </p>
           <div className="source-list">
-            {["SearXNG search", "Firecrawl extraction", "PDF/DOCX chunks", "pgvector retrieval", "Citation audit"].map((item) => (
+            {["Seeded markdown", "TF-IDF chunks", "Citation excerpts", "Sandbox web fallback", "Optional SearXNG"].map((item) => (
               <span key={item}>{item}</span>
             ))}
           </div>
         </div>
         <div className="trace-panel">
-          <div className="trace-row"><span>01</span><strong>Query planned</strong><small>Market, customer, and internal context</small></div>
-          <div className="trace-row"><span>02</span><strong>Sources extracted</strong><small>8 web pages, 12 document chunks</small></div>
-          <div className="trace-row"><span>03</span><strong>Claims checked</strong><small>Confidence notes and citation map</small></div>
-          <div className="trace-row"><span>04</span><strong>Artifact generated</strong><small>Brief with 6 linked citations</small></div>
+          <div className="trace-row"><span>01</span><strong>Goal planned</strong><small>Orchestrator picks the specialist order</small></div>
+          <div className="trace-row"><span>02</span><strong>Knowledge retrieved</strong><small>Cited chunks from the seeded markdown</small></div>
+          <div className="trace-row"><span>03</span><strong>Sandbox tools</strong><small>Web search fallback and draft actions</small></div>
+          <div className="trace-row"><span>04</span><strong>Artifact ready</strong><small>Brief or memo, approval when the workflow requires it</small></div>
         </div>
       </section>
 
       <section className="section section-band">
         <div className="section-heading compact">
           <span className="section-kicker">Runtime builder and MCP</span>
-          <h2>Configure agents, tools, schemas, and approval rules without redeploying.</h2>
+          <h2>Workflows, tools, knowledge, and approvals are already wired.</h2>
           <p className="section-lead">
-            The builder separates public-safe previews from private execution. Real tool calls require
-            credentials, explicit permissions, schemas, tests, and audit logging.
+            A visual builder is not part of this demo. Change behavior by running the live workflows,
+            querying knowledge, and invoking sandbox MCP tools.
           </p>
         </div>
         <div className="builder-grid">
@@ -310,10 +311,10 @@ export default function HomePage() {
       <section className="section tech-section">
         <div className="section-heading">
           <span className="section-kicker">Built with</span>
-          <h2>A stack that maps to modern AI engineering work.</h2>
+          <h2>The stack behind the public demo.</h2>
           <p className="section-lead">
-            The stack demonstrates agent orchestration, API design, vector retrieval, background state,
-            observability, local containers, and Kubernetes-based deployment readiness.
+            Next.js and FastAPI run the demo natively. Vector databases, Redis, and Kubernetes are
+            documented options, not services this host depends on.
           </p>
         </div>
         <div className="tech-strip">
@@ -338,37 +339,37 @@ export default function HomePage() {
       <section className="section proof-section">
         <div className="proof-panel">
           <span className="section-kicker">Observability and evaluation</span>
-          <h2>Debug agent behavior with traces, benchmarks, and cost controls.</h2>
+          <h2>Debug a run from its own spans.</h2>
           <p>
-            The platform surfaces prompt history, model calls, tool calls, retrieved context, approval decisions,
-            generated artifacts, errors, token estimates, and benchmark results.
+            Every orchestrator, agent, tool, RAG, and approval step is stored on the run. The demo
+            does not export those spans to Langfuse, and it does not run a separate benchmark suite.
           </p>
         </div>
         <div className="proof-cards">
           <article>
             <RadioTower size={22} />
-            <strong>Langfuse traces</strong>
-            <span>Prompt, model, tool, output, retry, and error history.</span>
+            <strong>Internal traces</strong>
+            <span>Agent, tool, RAG, artifact, and approval spans on the Traces page.</span>
           </article>
           <article>
             <CircleDollarSign size={22} />
-            <strong>Cost controls</strong>
-            <span>Token estimates, model routing, and infrastructure awareness.</span>
+            <strong>Offline cost</strong>
+            <span>Deterministic studio mode. No paid model call is required.</span>
           </article>
           <article>
             <Gauge size={22} />
-            <strong>50 benchmarks</strong>
-            <span>Quality, speed, citation, approval safety, and workflow success.</span>
+            <strong>Per-run checks</strong>
+            <span>Completeness, citations, and sandbox safety on the workflows that include an evaluator.</span>
           </article>
         </div>
       </section>
 
       <section className="section final-cta">
         <span className="section-kicker">AgentOps Studio</span>
-        <h2>A complete multi-agent platform surface, ready for the real engine.</h2>
+        <h2>Open the console and approve a seeded run.</h2>
         <p>
-          The frontend now presents the product as an AI operations console: agents, graphs, tools, memory,
-          traces, evaluations, approvals, and deployable infrastructure in one coherent platform.
+          Dashboard, Workflows, Runs, Knowledge, MCP, and Traces talk to the API. The first visit
+          already has a cited executive brief waiting for sandbox approval.
         </p>
         <div className="hero-actions">
           <Link className="button primary" href="/dashboard">Open dashboard</Link>

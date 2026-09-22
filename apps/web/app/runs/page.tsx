@@ -64,7 +64,10 @@ export default function RunsPage() {
               (lanes[lane] || []).map((run) => (
                 <div className="task" key={run.id}>
                   <strong>{run.workflow_title}</strong>
-                  <div className="muted-line">{run.goal.slice(0, 120)}</div>
+                  <div className="muted-line">
+                    {run.seeded ? "Seeded demo · " : ""}
+                    {run.citations.length} citations · {run.goal.slice(0, 120)}
+                  </div>
                   {run.status === "approval" ? (
                     <button
                       className="button"

@@ -1,4 +1,10 @@
-const DEFAULT_API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+// Same-origin `/api` is the production default (Next route handler or Caddy).
+// Set NEXT_PUBLIC_API_URL to an absolute origin only when the browser must
+// call the API host directly — that value is baked in at `next build`.
+const DEFAULT_API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "/api";
 
 export function apiBase(): string {
   return DEFAULT_API_BASE.replace(/\/$/, "");
@@ -32,6 +38,9 @@ export type PlatformSummary = {
   cloud_paths: string[];
   model_gateway: string;
   public_demo_mode: boolean;
+  demo_public: boolean;
+  public_host: string;
+  distinct_from: string;
   capabilities: string[];
 };
 
@@ -64,6 +73,7 @@ export type RunRecord = {
   citations: Array<{ source_id: string; title: string; excerpt: string; score: number }>;
   error?: string | null;
   mode: string;
+  seeded?: boolean;
 };
 
 export type TraceSpan = {

@@ -4,9 +4,12 @@ services:
     working_dir: /workspace
     command: sh -c "npm install && npm run dev:web -- --hostname 0.0.0.0 --port 3000"
     ports:
-      - "3000:3000"
+      # Host 3010 avoids Agent Fleet's web port 3002 on a shared Contabo VM.
+      - "3010:3000"
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_API_BASE_URL: /api
+      API_PROXY_TARGET: http://api:8000
     volumes:
       - .:/workspace
     depends_on:
@@ -18,11 +21,13 @@ services:
     working_dir: /workspace/apps/api
     command: sh -c "pip install -e '.[dev]' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
-      - "8000:8000"
+      # Host 8010 avoids Agent Fleet's API port 8000 and the RAG demo on 8402.
+      - "8010:8000"
     environment:
       MODEL_BASE_URL: http://host.docker.internal:3001/v1
       MODEL_NAME: auto
       PUBLIC_DEMO_MODE: "true"
+      DEMO_PUBLIC: "true"
       FORCE_DETERMINISTIC: "true"
       DATABASE_URL: postgresql://agentops:agentops@postgres:5432/agentops
       REDIS_URL: redis://redis:6379/0

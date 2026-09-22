@@ -1,10 +1,10 @@
 export const cloudBadges = [
   "Orchestration",
   "FastAPI",
-  "Postgres/pgvector",
-  "Redis",
-  "RAG",
-  "MCP"
+  "TF-IDF RAG",
+  "MCP sandbox",
+  "Run traces",
+  "Approval gates"
 ];
 
 export const featureCards = [
@@ -46,12 +46,12 @@ export const featureCards = [
   {
     icon: "chart",
     title: "Evaluation scorecard",
-    text: "Scores demo runs for completeness, citations, and sandbox safety checks."
+    text: "Product research attaches a deterministic scorecard for completeness, citations, and sandbox safety. Every run still stores traces. There is no separate benchmark suite."
   },
   {
     icon: "cloud",
-    title: "Deployment foundation",
-    text: "Packages the system with Docker Compose, Kubernetes manifests, and Terraform blueprints."
+    title: "Public demo hosting",
+    text: "Native Node and Python on ports 3010 and 8010, behind Caddy. Compose and Kubernetes docs stay optional."
   }
 ];
 
@@ -63,7 +63,7 @@ export const specializedAgents = [
   },
   {
     name: "Deep Research",
-    description: "Searches the web, extracts pages, cites sources, and prepares evidence packs.",
+    description: "Calls sandbox web search. SearXNG is optional; otherwise the tool returns a deterministic demo fallback.",
     accent: "green"
   },
   {
@@ -73,7 +73,7 @@ export const specializedAgents = [
   },
   {
     name: "Tool Operator",
-    description: "Executes approved GitHub, Gmail, Slack, storage, and internal tool actions.",
+    description: "Prepares sandbox Gmail and Slack drafts. The public demo never sends real mail, Slack, or GitHub writes.",
     accent: "red"
   },
   {
@@ -83,7 +83,7 @@ export const specializedAgents = [
   },
   {
     name: "Workflow Evaluator",
-    description: "Scores final artifacts against benchmarks, expected fields, citations, and cost limits.",
+    description: "Attaches a deterministic scorecard for completeness, citations, sandbox safety, and offline cost.",
     accent: "green"
   }
 ];
@@ -97,7 +97,7 @@ export const executionStages = [
   {
     step: "02",
     title: "Agent graph",
-    text: "Specialist agents run as an ordered graph: research, retrieval, analysis, and drafting share one run context."
+    text: "Specialist agents run in a fixed order and share one run context: plan, retrieval, research, compliance, and drafting."
   },
   {
     step: "03",
@@ -115,178 +115,64 @@ export const techStack = [
   "Next.js 16",
   "React 19",
   "FastAPI",
-  "DAG Orchestrator",
-  "Postgres",
-  "pgvector-ready",
-  "Redis-ready",
-  "RAG citations",
-  "SearXNG",
-  "MCP tool registry",
-  "Run traces",
-  "Docker Compose",
-  "Kubernetes",
+  "Deterministic DAG",
+  "TF-IDF RAG",
+  "MCP sandbox",
+  "Internal traces",
+  "Caddy",
+  "Docker Compose (optional)",
+  "Kubernetes docs",
   "Terraform blueprints"
-];
-
-export const workflowOutcomes = [
-  {
-    icon: "message",
-    title: "Support triage",
-    text: "Classify tickets, retrieve policy answers, draft Gmail replies, and escalate risky customer issues.",
-    accent: "blue"
-  },
-  {
-    icon: "briefcase",
-    title: "Sales lead research",
-    text: "Research companies, score fit, summarize buying signals, and prepare outreach drafts.",
-    accent: "green"
-  },
-  {
-    icon: "sparkles",
-    title: "Marketing campaign",
-    text: "Create campaign briefs, landing copy, content calendars, and launch checklists.",
-    accent: "amber"
-  },
-  {
-    icon: "receipt",
-    title: "Finance invoice check",
-    text: "Compare invoices against policy, flag anomalies, and generate approval memos.",
-    accent: "red"
-  },
-  {
-    icon: "users",
-    title: "Hiring screen",
-    text: "Compare CVs to role criteria, create candidate summaries, and draft follow-up emails.",
-    accent: "blue"
-  },
-  {
-    icon: "search",
-    title: "Product research",
-    text: "Analyze competitors, extract web sources, cite evidence, and recommend roadmap moves.",
-    accent: "green"
-  },
-  {
-    icon: "code",
-    title: "Engineering delivery",
-    text: "Convert requests into issues, branches, tests, and approved GitHub pull requests.",
-    accent: "amber"
-  },
-  {
-    icon: "shield",
-    title: "Compliance review",
-    text: "Check workflows and documents against company policy with traceable risk notes.",
-    accent: "red"
-  },
-  {
-    icon: "chart",
-    title: "Investor update",
-    text: "Summarize metrics, wins, risks, roadmap, and create an investor email draft.",
-    accent: "blue"
-  },
-  {
-    icon: "rocket",
-    title: "Executive daily brief",
-    text: "Summarize operating activity and post a Slack update after human approval.",
-    accent: "green"
-  }
-];
-
-export const privateActions = [
-  { icon: "git", label: "GitHub PR after approval" },
-  { icon: "mail", label: "Gmail drafts only" },
-  { icon: "slack", label: "Slack post after approval" },
-  { icon: "shield", label: "Audit log for all actions" },
-  { icon: "brain", label: "FreeLLMAPI model gateway" },
-  { icon: "code", label: "Sandbox repo automation" }
 ];
 
 export const cloudTabs = [
   {
-    name: "Native local (primary)",
-    summary: "Node web + Python API via scripts/dev-api.sh — no Docker required.",
-    proof: "Hiring-manager demo path: npm run dev:web + bash scripts/dev-api.sh."
+    name: "Contabo public demo",
+    summary: "Native API :8010 and web :3010 behind Caddy at agentops.169.58.185.43.sslip.io. Not Agent Fleet.",
+    proof: "systemd units plus scripts/prod-api.sh and scripts/prod-web.sh. Fleet stays on 8000/3002; RAG stays on 8402."
   },
   {
-    name: "Local Docker (optional)",
-    summary: "Compose stack with frontend, API, and optional Postgres, Redis, SearXNG.",
-    proof: "Use on Mac/local machines that have Docker Desktop; not required for the demo."
+    name: "Native local dev",
+    summary: "Hot-reload API :8000 and web :3000 via scripts/dev-api.sh and npm run dev:web.",
+    proof: "Same DEMO_PUBLIC seed and /api proxy. No Docker required."
   },
   {
-    name: "Local Kubernetes",
-    summary: "k3d cluster for pods, services, ingress, secrets, config maps, health checks, and rollout practice.",
-    proof: "Use before managed environments so application and cluster issues are separated."
+    name: "Docker Compose (optional)",
+    summary: "Host ports 3010 and 8010 so Compose does not take Fleet's 8000/3002. Postgres, Redis, and SearXNG are profiles.",
+    proof: "Useful on a machine that already has Docker. Not the Contabo path and not required to verify the demo."
   },
   {
-    name: "Managed Kubernetes",
-    summary: "Production-style deployment path with Terraform blueprints, managed database, cache, secrets, ingress, and logs.",
-    proof: "Use for short public launch windows and production-readiness validation."
+    name: "Kubernetes docs",
+    summary: "k3d and manifest notes for practice. Cluster-internal ports stay 3000/8000; they are not the Contabo host ports.",
+    proof: "Scaffolding only. The public demo does not require a cluster."
   },
   {
-    name: "Portable Hosting",
-    summary: "Provider-neutral architecture that keeps application manifests portable and infrastructure details in Terraform.",
-    proof: "Use for long-running hosting without locking the product to one vendor."
-  }
-];
-
-export const workforceSquads = [
-  {
-    name: "Core Platform",
-    agents: "6 agents",
-    tools: "Routing, approvals, memory, benchmarks",
-    accent: "blue"
-  },
-  {
-    name: "Revenue",
-    agents: "4 agents",
-    tools: "Lead research, outreach, CRM-ready notes",
-    accent: "green"
-  },
-  {
-    name: "Product",
-    agents: "4 agents",
-    tools: "Competitors, roadmap, user insights",
-    accent: "amber"
-  },
-  {
-    name: "Engineering",
-    agents: "4 agents",
-    tools: "GitHub, tests, review, release notes",
-    accent: "blue"
-  },
-  {
-    name: "Operations",
-    agents: "5 agents",
-    tools: "Support, finance, hiring, executive briefs",
-    accent: "green"
-  },
-  {
-    name: "Risk",
-    agents: "3 agents",
-    tools: "Compliance, policy, audit evidence",
-    accent: "red"
+    name: "Terraform blueprints",
+    summary: "README-only AWS/GCP notes. There are no .tf files and no managed database in this demo.",
+    proof: "Read infra/terraform when planning a later cloud move. Do not treat it as a live provisioner."
   }
 ];
 
 export const builderCapabilities = [
   {
-    icon: "bot",
-    title: "Agent templates",
-    text: "Create custom agents from safe templates with prompts, models, schemas, and memory sources."
-  },
-  {
     icon: "workflow",
-    title: "Workflow nodes",
-    text: "Compose agent, tool, RAG, approval, benchmark, and action nodes in a visual builder."
+    title: "Runnable workflows",
+    text: "Four specialist DAGs are live: executive brief, support triage, product research, and compliance review."
   },
   {
     icon: "network",
-    title: "MCP registry",
-    text: "Browse marketplace-style tools in sandbox mode and enable approved templates privately."
+    title: "MCP sandbox registry",
+    text: "Invoke knowledge search, web search, and sandbox Slack, Gmail, and GitHub handlers. Nothing is sent externally."
   },
   {
     icon: "database",
-    title: "Knowledge sources",
-    text: "Attach PDF, Markdown, and DOCX sources so every output can cite its evidence."
+    title: "Seeded knowledge",
+    text: "Markdown policies and runbooks are indexed at startup. Queries return cited chunks."
+  },
+  {
+    icon: "shield",
+    title: "Approval gates",
+    text: "External-style actions pause until you approve. Approval records a sandbox Slack post only."
   }
 ];
 
@@ -294,28 +180,55 @@ export const proofMetrics = [
   { label: "Demo workflows", value: "4" },
   { label: "Specialist agents", value: "6" },
   { label: "MCP tools", value: "6" },
-  { label: "Deploy paths", value: "5" }
+  { label: "Knowledge docs", value: "4" }
+];
+
+export const runnableWorkflows = [
+  {
+    icon: "rocket",
+    title: "Executive daily brief",
+    text: "Cite support and ops docs, draft a Slack brief, and wait for approval. Seeded on first visit.",
+    accent: "green"
+  },
+  {
+    icon: "message",
+    title: "Support triage",
+    text: "Retrieve the refund policy and draft a careful reply. Approval required before the sandbox action.",
+    accent: "blue"
+  },
+  {
+    icon: "search",
+    title: "Product research",
+    text: "Combine RAG playbooks with sandbox web research into a cited memo. Completes without an approval gate.",
+    accent: "amber"
+  },
+  {
+    icon: "shield",
+    title: "Compliance review",
+    text: "Check a proposed action against policy docs and return a risk note with citations.",
+    accent: "red"
+  }
 ];
 
 export const deploymentProof = [
   {
     icon: "panel",
-    title: "Native local",
-    text: "Primary hiring-manager path: Next.js + FastAPI with scripts/dev-api.sh — no Docker required."
+    title: "Contabo public demo",
+    text: "Native Node + Python. Web :3010, API :8010, Caddy TLS on agentops.169.58.185.43.sslip.io. Distinct from Agent Fleet."
   },
   {
     icon: "boxes",
-    title: "Local Docker (optional)",
-    text: "Compose stack with web, API, and optional Postgres, Redis, and SearXNG when Docker Desktop is available."
+    title: "Native local dev",
+    text: "Hot reload with scripts/dev-api.sh (:8000) and npm run dev:web (:3000). No Docker required."
   },
   {
     icon: "cloud",
-    title: "Local Kubernetes (k3d)",
-    text: "Practice pods, services, ingress, secrets, and rollouts before managed environments."
+    title: "Compose (optional)",
+    text: "Same host ports 3010/8010 when Docker is available. Postgres, Redis, and SearXNG are optional profiles, not the live demo."
   },
   {
     icon: "cloud",
-    title: "Managed K8s + portable hosting",
-    text: "Terraform blueprint READMEs for AWS EKS / GCP GKE style paths; manifests stay portable."
+    title: "Cluster docs only",
+    text: "k3d manifests and Terraform READMEs are scaffolding. They do not provision the public demo."
   }
 ];

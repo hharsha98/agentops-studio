@@ -69,6 +69,7 @@ class RunRecord(BaseModel):
     citations: list[Citation] = Field(default_factory=list)
     error: str | None = None
     mode: str = "deterministic"
+    seeded: bool = False
 
 
 class WorkflowDefinition(BaseModel):
@@ -118,6 +119,9 @@ class PlatformSummary(BaseModel):
     cloud_paths: list[str]
     model_gateway: str
     public_demo_mode: bool
+    demo_public: bool
+    public_host: str
+    distinct_from: str
     capabilities: list[str]
 
 

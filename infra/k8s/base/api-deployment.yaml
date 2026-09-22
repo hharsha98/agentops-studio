@@ -4,6 +4,7 @@ metadata:
   name: agentops-api
   namespace: agentops-studio
 spec:
+  # Keep replicas at 1. Run and trace state is in-memory on this demo API.
   replicas: 1
   selector:
     matchLabels:

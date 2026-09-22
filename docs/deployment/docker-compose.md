@@ -4,10 +4,10 @@ Compose is **optional scaffolding** for machines with Docker Desktop. The primar
 
 ## Services
 
-| Service | Port | Role |
-|---|---|---|
-| `web` | 3000 | Next.js UI |
-| `api` | 8000 | FastAPI orchestration / RAG / MCP / traces |
+| Service | Host port | Container port | Role |
+|---|---|---|---|
+| `web` | 3010 | 3000 | Next.js UI (`/api` proxied to the API container) |
+| `api` | 8010 | 8000 | FastAPI orchestration / RAG / MCP / traces |
 | `postgres` | 5432 | Optional (`--profile infra`) pgvector image for future persistence |
 | `redis` | 6379 | Optional (`--profile infra`) |
 | `searxng` | 8080 | Optional (`--profile research`) web search backend |
@@ -27,14 +27,16 @@ Optional add-ons:
 docker compose --profile infra --profile research up
 ```
 
+Host ports are **3010** and **8010** so Compose on the Contabo VM does not take Agent Fleet’s 8000/3002. The Contabo public path itself is native — see [contabo.md](contabo.md).
+
 Verify:
 
 ```bash
-curl -s http://localhost:8000/health
-bash scripts/smoke.sh
+curl -s http://127.0.0.1:8010/health
+API_BASE=http://127.0.0.1:8010 bash scripts/smoke.sh
 ```
 
-Open http://localhost:3000/dashboard and start **Executive daily brief**.
+Open http://localhost:3010/dashboard. A seeded executive brief is waiting for approval.
 
 ## Optional SearXNG
 
@@ -55,7 +57,7 @@ Build examples:
 
 ```bash
 docker build -f apps/api/Dockerfile -t agentops-api:local .
-docker build -f apps/web/Dockerfile --build-arg NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 -t agentops-web:local .
+docker build -f apps/web/Dockerfile -t agentops-web:local .
 ```
 
 ## What is intentionally out of scope for free-stack

@@ -1,0 +1,21 @@
+[Unit]
+Description=AgentOps Studio web (public demo)
+After=network.target agentops-api.service
+Wants=agentops-api.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/agentops-studio
+Environment=WEB_PORT=3010
+Environment=API_PORT=8010
+# prod-web.sh pins /api to http://127.0.0.1:$API_PORT.
+# Set API_PROXY_ORIGIN only for a non-local upstream.
+# First boot builds because .next is missing. Later restarts rebuild only when
+# FORCE_WEB_BUILD=1, or skip with SKIP_WEB_BUILD=1 after a manual build.
+ExecStart=/opt/agentops-studio/scripts/prod-web.sh
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target

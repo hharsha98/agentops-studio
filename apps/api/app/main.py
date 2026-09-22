@@ -16,6 +16,7 @@ from .models import (
 )
 from .orchestration import engine, list_workflows
 from .rag import knowledge_index
+from .seed import seed_public_demo
 from .store import store
 
 
@@ -26,6 +27,10 @@ def _bootstrap_knowledge() -> None:
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     _bootstrap_knowledge()
+    if settings.demo_public:
+        seeded = seed_public_demo()
+        if seeded:
+            print(f"DEMO_PUBLIC seeded {len(seeded)} showcase runs", flush=True)
     yield
 
 
@@ -33,10 +38,8 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan)
 _bootstrap_knowledge()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=settings.cors_origin_list(),
+    allow_origin_regex=settings.cors_origin_regex.strip() or None,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +54,8 @@ def health() -> dict[str, object]:
         "knowledge_documents": len(knowledge_index.documents),
         "mcp_tools": len(mcp_registry.list_tools()),
         "runs": store.counts().get("runs", 0),
+        "demo_public": settings.demo_public,
+        "public_demo_mode": settings.public_demo_mode,
     }
 
 
@@ -61,17 +66,28 @@ def platform() -> PlatformSummary:
         name="AgentOps Studio",
         product="studio",
         complements=(
-            "Agent Fleet is the separate Contabo-hosted multi-agent product. "
-            "AgentOps Studio is the portable ops lab / scaffold for orchestration, RAG, MCP, and traces."
+            "Agent Fleet is the separate Contabo-hosted product at "
+            "https://agentfleet.169.58.185.43.sslip.io/. "
+            "AgentOps Studio is this ops lab; its public demo target is "
+            "https://agentops.169.58.185.43.sslip.io/."
         ),
         agents=6,
         workflows=len(list_workflows()),
         knowledge_documents=len(knowledge_index.documents),
         mcp_tools=len(mcp_registry.list_tools()),
         runs=counts.get("runs", 0),
-        cloud_paths=["Native local", "Docker Compose", "k3d", "AWS EKS", "GCP GKE"],
+        cloud_paths=[
+            "Native local",
+            "Contabo public demo",
+            "Docker Compose (optional)",
+            "k3d docs",
+            "Terraform blueprints",
+        ],
         model_gateway=settings.model_name,
         public_demo_mode=settings.public_demo_mode,
+        demo_public=settings.demo_public,
+        public_host="https://agentops.169.58.185.43.sslip.io",
+        distinct_from="https://agentfleet.169.58.185.43.sslip.io",
         capabilities=[
             "multi-agent orchestration",
             "RAG with citations",

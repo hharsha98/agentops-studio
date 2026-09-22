@@ -11,7 +11,7 @@ AgentOps Studio is split into clear units:
 
 ## Runtime flow (implemented)
 
-1. User starts a workflow from the Dashboard or Workflows page.
+1. With `DEMO_PUBLIC=true` (default), startup already executed a finished product-research run and an executive brief sitting in `approval`. A visitor can also start a workflow from the Dashboard or Workflows page.
 2. `POST /runs` creates a run and the orchestration engine executes a specialist agent DAG.
 3. **Knowledge Analyst** calls `knowledge_search` (MCP) → RAG index over `demo-data/knowledge`.
 4. **Deep Research** calls `web_search` → SearXNG when available, otherwise a demo fallback.
@@ -21,8 +21,8 @@ AgentOps Studio is split into clear units:
 
 ## Studio vs Fleet
 
-- **AgentOps Studio** — portable ops lab / scaffold; Compose-first demo; honest about sandbox actions.
-- **Agent Fleet** — separate product with a live Contabo deployment; do not conflate naming or hosts.
+- **AgentOps Studio** — portable ops lab. Public demo target `https://agentops.169.58.185.43.sslip.io/` (native Node + Python, web :3010, API :8010). Sandbox actions only.
+- **Agent Fleet** — separate product at `https://agentfleet.169.58.185.43.sslip.io/` (host ports 8000/3002). Do not conflate naming, hosts, or ports.
 
 ## Honest capability notes
 

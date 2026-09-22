@@ -15,13 +15,23 @@ export default function KnowledgePage() {
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    api
-      .knowledge()
-      .then((data) => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.knowledge();
+        if (cancelled) return;
         setDocuments(data.documents);
         setChunkCount(data.chunk_count);
-      })
-      .catch((err: Error) => setError(err.message));
+        const queried = await api.queryKnowledge("refund policy", 3);
+        if (cancelled) return;
+        setHits(queried.hits);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load knowledge");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function onSearch(event: FormEvent) {

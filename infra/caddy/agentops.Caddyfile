@@ -1,0 +1,28 @@
+# AgentOps Studio — public demo on the Contabo host.
+# Do not attach this site to the Agent Fleet vhost (agentfleet.169.58.185.43.sslip.io).
+# Fleet keeps host ports 8000/3002. This demo uses 8010/3010. RAG demo stays on 8402.
+#
+# DNS: agentops.169.58.185.43.sslip.io resolves to 169.58.185.43 (sslip.io).
+# Optional split API host is commented at the bottom. Prefer same-origin /api.
+
+agentops.169.58.185.43.sslip.io {
+	encode gzip zstd
+
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy 127.0.0.1:8010
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3010
+	}
+}
+
+# Optional dedicated API origin. Requires a web rebuild:
+#   PUBLIC_API_ORIGIN=https://agentops-api.169.58.185.43.sslip.io bash scripts/prod-web.sh
+# and CORS_ORIGINS including https://agentops.169.58.185.43.sslip.io (already the default).
+#
+# agentops-api.169.58.185.43.sslip.io {
+# 	encode gzip zstd
+# 	reverse_proxy 127.0.0.1:8010
+# }

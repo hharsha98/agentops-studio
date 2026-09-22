@@ -28,7 +28,7 @@ export default function TracesPage() {
   return (
     <PageShell
       eyebrow="Observability"
-      title="Trace every prompt, tool call, artifact, and approval"
+      title="Trace every agent step, tool call, artifact, and approval"
       description="Internal run spans are always recorded. Optional Langfuse export can be added later — the studio demo does not require it."
     >
       <div className="demo-controls">

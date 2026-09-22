@@ -14,6 +14,7 @@ pip install -e '.[dev]' -q
 
 export DEMO_DATA_DIR="${DEMO_DATA_DIR:-$ROOT/demo-data}"
 export PUBLIC_DEMO_MODE="${PUBLIC_DEMO_MODE:-true}"
+export DEMO_PUBLIC="${DEMO_PUBLIC:-true}"
 export FORCE_DETERMINISTIC="${FORCE_DETERMINISTIC:-true}"
 
 exec python -m pytest -q "$@"
