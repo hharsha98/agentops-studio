@@ -32,7 +32,7 @@ bash scripts/prod-api.sh
 bash scripts/prod-web.sh
 ```
 
-`prod-web.sh` builds the Next.js app the first time (or when `FORCE_WEB_BUILD=1`). The client bundle calls `/api`. The Next server proxies that to `API_PROXY_TARGET` (default `http://127.0.0.1:8010`) using a runtime env lookup, so you can change the upstream without rebuilding. Set `PUBLIC_API_ORIGIN` only if the browser must call a different host, and rebuild.
+`prod-web.sh` builds the Next.js app the first time (or when `FORCE_WEB_BUILD=1`). The client bundle calls `/api`. The Next server proxies that to `http://127.0.0.1:$API_PORT` (8010). An inherited `API_PROXY_TARGET` from `.env` (dev uses `:8000`) does not override that. Set `API_PROXY_ORIGIN` only for a different upstream. Set `PUBLIC_API_ORIGIN` only if the browser must call a different host, and rebuild.
 
 Check:
 
@@ -63,6 +63,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/agentops-studio
+Environment=API_PORT=8010
 Environment=PORT=8010
 Environment=DEMO_PUBLIC=true
 Environment=PUBLIC_DEMO_MODE=true
@@ -90,7 +91,6 @@ Type=simple
 WorkingDirectory=/opt/agentops-studio
 Environment=WEB_PORT=3010
 Environment=API_PORT=8010
-Environment=API_PROXY_TARGET=http://127.0.0.1:8010
 ExecStart=/opt/agentops-studio/scripts/prod-web.sh
 Restart=on-failure
 RestartSec=3

@@ -46,7 +46,7 @@ export const featureCards = [
   {
     icon: "chart",
     title: "Evaluation scorecard",
-    text: "Each demo run records a deterministic scorecard for completeness, citations, and sandbox safety. There is no separate benchmark suite."
+    text: "Product research attaches a deterministic scorecard for completeness, citations, and sandbox safety. Every run still stores traces. There is no separate benchmark suite."
   },
   {
     icon: "cloud",

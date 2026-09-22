@@ -4,10 +4,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-API_BASE="${API_BASE:-http://127.0.0.1:8010}"
-WEB_BASE="${WEB_BASE:-http://127.0.0.1:3010}"
-API_PORT="${API_PORT:-8010}"
+API_PORT="${API_PORT:-${PORT:-8010}}"
 WEB_PORT="${WEB_PORT:-3010}"
+API_BASE="${API_BASE:-http://127.0.0.1:${API_PORT}}"
+WEB_BASE="${WEB_BASE:-http://127.0.0.1:${WEB_PORT}}"
 
 echo "==> Listening on 0.0.0.0 (or ::) :${API_PORT} and :${WEB_PORT}"
 python3 - "$API_PORT" "$WEB_PORT" <<'PY'
@@ -111,7 +111,7 @@ pages = {
     "/runs": "Track every agent run",
     "/knowledge": "Company knowledge",
     "/mcp": "MCP registry",
-    "/traces": "Trace every prompt",
+    "/traces": "Trace every agent step",
     "/cloud": "Contabo public demo",
     "/builder": "not part of this demo",
     "/benchmarks": "not running",
@@ -127,7 +127,7 @@ for path, needle in pages.items():
         raise SystemExit(f"{path} missing {needle!r}")
     print(f"200 {path}")
 home = urllib.request.urlopen(base + "/", timeout=20).read().decode("utf-8", "replace")
-for banned in ("18.4k", "50 benchmarks", "Firecrawl extracts"):
+for banned in ("18.4k", "50 benchmarks", "Firecrawl extracts", "run in parallel", "8 web pages"):
     if banned in home:
         raise SystemExit(f"homepage still claims {banned!r}")
 print("homepage claims ok")

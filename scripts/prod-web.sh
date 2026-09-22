@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 WEB_PORT="${WEB_PORT:-3010}"
-API_PORT="${API_PORT:-8010}"
+API_PORT="${API_PORT:-${PORT:-8010}}"
 
 # Force the client bundle at /api unless the operator opts into another origin.
 # NEXT_PUBLIC_* is inlined at build time, so an inherited localhost value must not win.
@@ -18,7 +18,14 @@ else
   export NEXT_PUBLIC_API_URL=/api
   export NEXT_PUBLIC_API_BASE_URL=/api
 fi
-export API_PROXY_TARGET="${API_PROXY_TARGET:-http://127.0.0.1:${API_PORT}}"
+# Pin the server-side proxy to this app's API. An inherited API_PROXY_TARGET
+# (for example :8000 from .env.example or Agent Fleet) must not win.
+# Set API_PROXY_ORIGIN=http://other-host:port to opt into a different upstream.
+if [[ -n "${API_PROXY_ORIGIN:-}" ]]; then
+  export API_PROXY_TARGET="$API_PROXY_ORIGIN"
+else
+  export API_PROXY_TARGET="http://127.0.0.1:${API_PORT}"
+fi
 
 if [[ ! -d node_modules ]]; then
   npm install

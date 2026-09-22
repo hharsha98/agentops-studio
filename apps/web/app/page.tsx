@@ -221,8 +221,8 @@ export default function HomePage() {
           <span className="section-kicker">Workflow execution</span>
           <h2>Goal in. Agent graph out. Every step observable.</h2>
           <p className="section-lead">
-            A user goal becomes a dependency graph. Agents run in parallel where possible, pause for human
-            approval when needed, and produce evidence-backed artifacts.
+            A user goal becomes an ordered specialist run. Agents execute one after another, pause for
+            human approval when the workflow requires it, and produce evidence-backed artifacts.
           </p>
         </div>
         <div className="execution-grid">
@@ -278,10 +278,10 @@ export default function HomePage() {
           </div>
         </div>
         <div className="trace-panel">
-          <div className="trace-row"><span>01</span><strong>Query planned</strong><small>Market, customer, and internal context</small></div>
-          <div className="trace-row"><span>02</span><strong>Sources extracted</strong><small>8 web pages, 12 document chunks</small></div>
-          <div className="trace-row"><span>03</span><strong>Claims checked</strong><small>Confidence notes and citation map</small></div>
-          <div className="trace-row"><span>04</span><strong>Artifact generated</strong><small>Brief with 6 linked citations</small></div>
+          <div className="trace-row"><span>01</span><strong>Goal planned</strong><small>Orchestrator picks the specialist order</small></div>
+          <div className="trace-row"><span>02</span><strong>Knowledge retrieved</strong><small>Cited chunks from the seeded markdown</small></div>
+          <div className="trace-row"><span>03</span><strong>Sandbox tools</strong><small>Web search fallback and draft actions</small></div>
+          <div className="trace-row"><span>04</span><strong>Artifact ready</strong><small>Brief or memo, approval when the workflow requires it</small></div>
         </div>
       </section>
 

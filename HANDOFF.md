@@ -39,7 +39,7 @@ npm run test:api
 The browser calls same-origin `/api`. Either:
 
 - Caddy strips `/api` and proxies to `127.0.0.1:8010`, or
-- Next.js `app/api/[...path]` proxies to `API_PROXY_TARGET` (runtime env, default `http://127.0.0.1:8010` in prod).
+- Next.js `app/api/[...path]` proxies to `API_PROXY_TARGET`. `prod-web.sh` sets that to `http://127.0.0.1:$API_PORT` and ignores an inherited `:8000` value. Set `API_PROXY_ORIGIN` only for a different upstream.
 
 `NEXT_PUBLIC_API_URL=/api` is forced by `prod-web.sh` unless `PUBLIC_API_ORIGIN` is set (that path needs a rebuild because `NEXT_PUBLIC_*` is inlined).
 
@@ -57,6 +57,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/agentops-studio
+Environment=API_PORT=8010
 Environment=PORT=8010
 Environment=DEMO_PUBLIC=true
 Environment=PUBLIC_DEMO_MODE=true
@@ -83,7 +84,6 @@ Type=simple
 WorkingDirectory=/opt/agentops-studio
 Environment=WEB_PORT=3010
 Environment=API_PORT=8010
-Environment=API_PROXY_TARGET=http://127.0.0.1:8010
 ExecStart=/opt/agentops-studio/scripts/prod-web.sh
 Restart=on-failure
 RestartSec=3
@@ -158,4 +158,19 @@ bash scripts/smoke.sh
 
 ## Verification
 
-Recorded on this branch after `npm run test:api` and `bash scripts/smoke-public.sh` against the prod servers. See the commit that follows a green run, or re-run those two commands on the VM.
+Cursor cloud VM, native Node + Python, no Docker — 2026-09-22.
+
+| Check | Result |
+|---|---|
+| `npm run test:api` | **PASS** — 12 passed |
+| `npm run lint:web` / `npm run typecheck:web` | **PASS** |
+| `bash scripts/smoke-public.sh` | **PASS** — wildcard bind 8010/3010, `/api` proxy, CORS for the Studio sslip.io origin, seeded approval + done runs, nav HTML 200, executive brief → approve, RAG refund hit, MCP invoke |
+| Browser: dashboard seed → approve → traces | **PASS** — seeded executive brief showed citations; approve moved it to `done`; Traces listed `approval.granted` and sandbox `tool.slack_post` |
+| Browser: Knowledge, MCP, Workflows, Runs | **PASS** — refund-policy hit, `knowledge_search` invoke, four Run buttons, Kanban approval + done |
+| Nav below 1080px | **PASS** — links stay visible (they used to be `display: none`) |
+
+Re-run on the Contabo host after systemd + Caddy:
+
+```bash
+bash scripts/smoke-public.sh
+```

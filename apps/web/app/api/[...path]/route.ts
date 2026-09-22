@@ -18,6 +18,7 @@ function upstreamBase(): string {
   // Dynamic lookup so `next start` reads API_PROXY_TARGET at runtime.
   // A static `process.env.API_PROXY_TARGET` is inlined at build time.
   const configured = process.env["API_PROXY_TARGET"] || process.env["API_BASE_URL"];
+  // Dev default matches scripts/dev-api.sh. prod-web.sh always sets API_PROXY_TARGET.
   return (configured || "http://127.0.0.1:8000").replace(/\/$/, "");
 }
 

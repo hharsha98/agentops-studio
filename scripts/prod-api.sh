@@ -13,16 +13,18 @@ fi
 source .venv/bin/activate
 pip install -e '.[dev]' -q
 
-PORT="${PORT:-8010}"
+# API_PORT is the name shared with the web proxy and smoke-public.sh.
+# PORT is accepted when API_PORT is unset.
+API_PORT="${API_PORT:-${PORT:-8010}}"
 export DEMO_DATA_DIR="${DEMO_DATA_DIR:-$ROOT/demo-data}"
 export PUBLIC_DEMO_MODE="${PUBLIC_DEMO_MODE:-true}"
 export DEMO_PUBLIC="${DEMO_PUBLIC:-true}"
 export FORCE_DETERMINISTIC="${FORCE_DETERMINISTIC:-true}"
 
-echo "AgentOps API on 0.0.0.0:${PORT} (DEMO_PUBLIC=${DEMO_PUBLIC}, single worker)"
+echo "AgentOps API on 0.0.0.0:${API_PORT} (DEMO_PUBLIC=${DEMO_PUBLIC}, single worker)"
 exec uvicorn app.main:app \
   --host 0.0.0.0 \
-  --port "$PORT" \
+  --port "$API_PORT" \
   --workers 1 \
   --proxy-headers \
   --forwarded-allow-ips=127.0.0.1

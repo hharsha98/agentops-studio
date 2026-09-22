@@ -6,6 +6,7 @@ After=network.target
 Type=simple
 WorkingDirectory=/opt/agentops-studio
 # Install path is the git checkout. One worker; in-memory runs.
+Environment=API_PORT=8010
 Environment=PORT=8010
 Environment=DEMO_PUBLIC=true
 Environment=PUBLIC_DEMO_MODE=true
