@@ -26,7 +26,7 @@ export default function CloudPage() {
         </p>
         <div className="flow">
           <div className="flow-step"><strong>Frontend</strong><br /><small>Next.js product app</small></div>
-          <div className="flow-step"><strong>API</strong><br /><small>FastAPI and LangGraph</small></div>
+          <div className="flow-step"><strong>API</strong><br /><small>FastAPI + DAG orchestrator</small></div>
           <div className="flow-step"><strong>Data</strong><br /><small>Postgres, pgvector, Redis</small></div>
           <div className="flow-step"><strong>AI Ops</strong><br /><small>Langfuse, RAG, research</small></div>
           <div className="flow-step"><strong>Deploy</strong><br /><small>Portable managed Kubernetes</small></div>

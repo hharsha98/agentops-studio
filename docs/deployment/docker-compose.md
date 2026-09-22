@@ -1,6 +1,6 @@
-# Docker Compose deployment (free-stack)
+# Docker Compose deployment (optional free-stack)
 
-This is the primary demo and development path. No paid cloud account is required.
+Compose is **optional scaffolding** for machines with Docker Desktop. The primary hiring-manager demo path is native Node + Python (`bash scripts/dev-api.sh` + `npm run dev:web`) — no Docker required.
 
 ## Services
 
@@ -19,9 +19,7 @@ cp .env.example .env
 docker compose up
 ```
 
-Default Compose starts **web + api only** — enough for the hiring-manager demo (in-memory runs + seeded RAG).
-
-> **Note:** Compose is optional. The primary verified path is native Node + Python (`bash scripts/dev-api.sh` + `npm run dev:web`). Use Compose on Mac/local when Docker Desktop is available.
+Default Compose starts **web + api only** — useful when you prefer containers; the same demo also works natively without Docker.
 
 Optional add-ons:
 

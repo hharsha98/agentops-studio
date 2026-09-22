@@ -25,28 +25,27 @@ Do **not** present third-party hosts (for example `agentfleet.pages.dev`) as own
 
 ## Quick demo (hiring manager path) — native, no Docker required
 
-Prerequisites: Node.js 22+, npm 10+, Python 3.12+.
+Prerequisites: Node.js 22+, npm 10+, Python 3.12+ (with `python3-venv` / `ensurepip` available).
 
 ```bash
 cp .env.example .env
 npm install
 
 # Terminal 1 — API
+bash scripts/dev-api.sh      # starts API on :8000
+
+# Terminal 2 — Web
+npm run dev:web              # starts web on :3000
+```
+
+Or run the API manually:
+
+```bash
 cd apps/api
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 DEMO_DATA_DIR=../../demo-data uvicorn app.main:app --reload --port 8000
-
-# Terminal 2 — Web
-npm run dev:web
-```
-
-Or use the helper scripts from the repo root:
-
-```bash
-bash scripts/dev-api.sh      # starts API on :8000
-npm run dev:web              # starts web on :3000
 ```
 
 Then:
@@ -62,7 +61,7 @@ Smoke + tests (API must be running for smoke):
 
 ```bash
 bash scripts/smoke.sh
-npm run test:api
+npm run test:api             # uses apps/api/.venv via scripts/test-api.sh
 ```
 
 ## Optional — Docker Compose (Mac / local Docker only)

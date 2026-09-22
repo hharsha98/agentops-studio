@@ -202,9 +202,14 @@ export const privateActions = [
 
 export const cloudTabs = [
   {
-    name: "Local Docker",
-    summary: "Fast development mode with frontend, API, Postgres, Redis, and optional SearXNG.",
-    proof: "Use for daily development, testing, and the hiring-manager demo path."
+    name: "Native local (primary)",
+    summary: "Node web + Python API via scripts/dev-api.sh — no Docker required.",
+    proof: "Hiring-manager demo path: npm run dev:web + bash scripts/dev-api.sh."
+  },
+  {
+    name: "Local Docker (optional)",
+    summary: "Compose stack with frontend, API, and optional Postgres, Redis, SearXNG.",
+    proof: "Use on Mac/local machines that have Docker Desktop; not required for the demo."
   },
   {
     name: "Local Kubernetes",
@@ -289,24 +294,24 @@ export const proofMetrics = [
   { label: "Demo workflows", value: "4" },
   { label: "Specialist agents", value: "6" },
   { label: "MCP tools", value: "6" },
-  { label: "Deploy paths", value: "4" }
+  { label: "Deploy paths", value: "5" }
 ];
 
 export const deploymentProof = [
   {
     icon: "panel",
-    title: "Local Docker",
-    text: "Daily development stack with web, API, Postgres, Redis, and optional SearXNG research."
+    title: "Native local",
+    text: "Primary hiring-manager path: Next.js + FastAPI with scripts/dev-api.sh — no Docker required."
   },
   {
     icon: "boxes",
-    title: "Local Kubernetes",
-    text: "k3d path for pods, services, ingress, secrets, config maps, health checks, and rollout validation."
+    title: "Local Docker (optional)",
+    text: "Compose stack with web, API, and optional Postgres, Redis, and SearXNG when Docker Desktop is available."
   },
   {
     icon: "cloud",
-    title: "Managed Kubernetes",
-    text: "Production-style cluster path with Terraform blueprints, managed database, cache, and centralized logs."
+    title: "Local / managed Kubernetes",
+    text: "k3d practice plus Terraform blueprint READMEs for managed cluster paths."
   },
   {
     icon: "cloud",
