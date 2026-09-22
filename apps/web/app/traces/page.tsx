@@ -1,18 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { PageShell } from "@/components/page-shell";
 import { api, type TraceSpan } from "@/lib/api";
 
 export default function TracesPage() {
   const [spans, setSpans] = useState<TraceSpan[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function refresh() {
+    startTransition(async () => {
+      try {
+        const data = await api.traces();
+        setSpans(data.spans);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load traces");
+      }
+    });
+  }
 
   useEffect(() => {
-    api
-      .traces()
-      .then((data) => setSpans(data.spans))
-      .catch((err: Error) => setError(err.message));
+    refresh();
   }, []);
 
   return (
@@ -21,6 +31,11 @@ export default function TracesPage() {
       title="Trace every prompt, tool call, artifact, and approval"
       description="Internal run spans are always recorded. Optional Langfuse export can be added later — the studio demo does not require it."
     >
+      <div className="demo-controls">
+        <button className="button" type="button" onClick={refresh} disabled={pending}>
+          Refresh
+        </button>
+      </div>
       {error ? <p className="demo-error">{error}</p> : null}
       {!error && spans.length === 0 ? (
         <article className="card">

@@ -16,7 +16,7 @@ export const featureCards = [
   {
     icon: "workflow",
     title: "DAG workflow engine",
-    text: "Breaks complex work into dependency-aware steps that can run sequentially or in parallel."
+    text: "Breaks complex work into ordered specialist steps with shared context, citations, and approval gates."
   },
   {
     icon: "layers",
@@ -26,32 +26,32 @@ export const featureCards = [
   {
     icon: "search",
     title: "Research and citations",
-    text: "Combines private search, page extraction, document retrieval, and source-linked answers."
+    text: "Combines sandbox web search, document retrieval, and source-linked answers."
   },
   {
     icon: "file",
     title: "RAG memory layer",
-    text: "Indexes policies, playbooks, reports, and runbooks into retrievable chunks with citations."
+    text: "Indexes policies, playbooks, and runbooks into retrievable chunks with citations."
   },
   {
     icon: "boxes",
     title: "MCP tool registry",
-    text: "Connects tool servers through permissioned templates, schemas, tests, and audit logs."
+    text: "Connects tool handlers through permissioned templates, schemas, and sandbox invoke."
   },
   {
     icon: "activity",
     title: "Trace waterfall",
-    text: "Shows prompts, model calls, tool calls, retries, approvals, artifacts, and errors in one timeline."
+    text: "Shows agent steps, tool calls, RAG hits, artifacts, and approvals in one timeline."
   },
   {
     icon: "chart",
     title: "Evaluation scorecard",
-    text: "Measures quality, latency, cost, approval safety, citation quality, and workflow success."
+    text: "Scores demo runs for completeness, citations, and sandbox safety checks."
   },
   {
     icon: "cloud",
     title: "Deployment foundation",
-    text: "Packages the system with Docker, Kubernetes manifests, Terraform blueprints, secrets, and logs."
+    text: "Packages the system with Docker Compose, Kubernetes manifests, and Terraform blueprints."
   }
 ];
 
@@ -97,7 +97,7 @@ export const executionStages = [
   {
     step: "02",
     title: "Agent graph",
-    text: "Specialist agents run as a dependency graph, with independent research, retrieval, analysis, and drafting steps executing in parallel."
+    text: "Specialist agents run as an ordered graph: research, retrieval, analysis, and drafting share one run context."
   },
   {
     step: "03",
@@ -107,7 +107,7 @@ export const executionStages = [
   {
     step: "04",
     title: "Approval and artifact",
-    text: "Risky actions pause for human approval, then the system produces a cited report, draft, PR, Slack brief, or decision memo."
+    text: "Risky actions pause for human approval, then the system produces a cited brief or sandbox draft."
   }
 ];
 
@@ -117,8 +117,8 @@ export const techStack = [
   "FastAPI",
   "DAG Orchestrator",
   "Postgres",
-  "pgvector",
-  "Redis",
+  "pgvector-ready",
+  "Redis-ready",
   "RAG citations",
   "SearXNG",
   "MCP tool registry",
@@ -286,10 +286,10 @@ export const builderCapabilities = [
 ];
 
 export const proofMetrics = [
-  { label: "Agent squads", value: "30" },
-  { label: "Business workflows", value: "10" },
-  { label: "Benchmark cases", value: "50" },
-  { label: "Runtime layers", value: "8" }
+  { label: "Demo workflows", value: "4" },
+  { label: "Specialist agents", value: "6" },
+  { label: "MCP tools", value: "6" },
+  { label: "Deploy paths", value: "4" }
 ];
 
 export const deploymentProof = [

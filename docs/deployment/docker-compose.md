@@ -8,8 +8,8 @@ This is the primary demo and development path. No paid cloud account is required
 |---|---|---|
 | `web` | 3000 | Next.js UI |
 | `api` | 8000 | FastAPI orchestration / RAG / MCP / traces |
-| `postgres` | 5432 | pgvector image (available for future persistence) |
-| `redis` | 6379 | Available for future job/cache wiring |
+| `postgres` | 5432 | Optional (`--profile infra`) pgvector image for future persistence |
+| `redis` | 6379 | Optional (`--profile infra`) |
 | `searxng` | 8080 | Optional (`--profile research`) web search backend |
 
 ## Run
@@ -17,6 +17,16 @@ This is the primary demo and development path. No paid cloud account is required
 ```bash
 cp .env.example .env
 docker compose up
+```
+
+Default Compose starts **web + api only** — enough for the hiring-manager demo (in-memory runs + seeded RAG).
+
+> **Note:** Compose is optional. The primary verified path is native Node + Python (`bash scripts/dev-api.sh` + `npm run dev:web`). Use Compose on Mac/local when Docker Desktop is available.
+
+Optional add-ons:
+
+```bash
+docker compose --profile infra --profile research up
 ```
 
 Verify:

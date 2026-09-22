@@ -35,15 +35,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
-      start_period: 20s
-    depends_on:
-      postgres:
-        condition: service_started
-      redis:
-        condition: service_started
+      start_period: 25s
 
   postgres:
     image: pgvector/pgvector:pg16
+    profiles: ["infra"]
     ports:
       - "5432:5432"
     environment:
@@ -52,27 +48,18 @@ services:
       POSTGRES_DB: agentops
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U agentops -d agentops"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
 
   redis:
     image: redis:7-alpine
+    profiles: ["infra"]
     ports:
       - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
 
   searxng:
     image: searxng/searxng:latest
+    profiles: ["research"]
     ports:
       - "8080:8080"
-    profiles: ["research"]
 
 volumes:
   postgres-data:

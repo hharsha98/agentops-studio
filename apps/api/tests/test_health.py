@@ -35,7 +35,7 @@ def test_platform_summary_matches_portfolio_plan(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["name"] == "AgentOps Studio"
-    assert body["agents"] == 30
+    assert body["agents"] == 6
     assert body["workflows"] >= 4
     assert "AWS EKS" in body["cloud_paths"]
     assert "GCP GKE" in body["cloud_paths"]

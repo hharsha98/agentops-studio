@@ -33,8 +33,11 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan)
 _bootstrap_knowledge()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -61,7 +64,7 @@ def platform() -> PlatformSummary:
             "Agent Fleet is the separate Contabo-hosted multi-agent product. "
             "AgentOps Studio is the portable ops lab / scaffold for orchestration, RAG, MCP, and traces."
         ),
-        agents=30,
+        agents=6,
         workflows=len(list_workflows()),
         knowledge_documents=len(knowledge_index.documents),
         mcp_tools=len(mcp_registry.list_tools()),
