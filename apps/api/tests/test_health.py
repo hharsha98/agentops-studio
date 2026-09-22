@@ -35,12 +35,15 @@ def test_platform_summary_matches_portfolio_plan(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["name"] == "AgentOps Studio"
+    assert body["product"] == "studio"
     assert body["agents"] == 6
     assert body["workflows"] >= 4
+    assert "Native local" in body["cloud_paths"]
     assert "AWS EKS" in body["cloud_paths"]
     assert "GCP GKE" in body["cloud_paths"]
     assert "multi-agent orchestration" in body["capabilities"]
     assert "Agent Fleet" in body["complements"]
+    assert "Contabo" in body["complements"]
 
 
 def test_knowledge_is_seeded_and_queryable(client: TestClient) -> None:

@@ -5,8 +5,8 @@ export default function CloudPage() {
   return (
     <PageShell
       eyebrow="Deployment strategy"
-      title="Portable deployment from local development to managed Kubernetes."
-      description="AgentOps Studio is designed for containerized delivery, infrastructure as code, secure secrets, observable services, and portable hosting."
+      title="Native-first demo, optional containers and Kubernetes scaffolding."
+      description="The hiring-manager path is Node + Python with no Docker. Compose, k3d, and Terraform blueprints are optional scaffolding for machines that have those tools."
     >
       <div className="tabs">
         {cloudTabs.map((tab) => (
@@ -19,17 +19,17 @@ export default function CloudPage() {
       </div>
 
       <section className="diagram">
-        <h2>Portable deployment architecture</h2>
+        <h2>Demo vs scaffolding</h2>
         <p className="section-lead">
-          The same app services run through Docker Compose, local Kubernetes, and managed Kubernetes environments.
-          Provider-specific infrastructure lives in Terraform, while application deployment stays Kubernetes-native.
+          Today the live demo is an in-memory FastAPI store + TF-IDF RAG + internal traces. Optional Compose
+          profiles and k8s/Terraform docs prepare a fuller stack without requiring it for the demo.
         </p>
         <div className="flow">
-          <div className="flow-step"><strong>Frontend</strong><br /><small>Next.js product app</small></div>
-          <div className="flow-step"><strong>API</strong><br /><small>FastAPI and LangGraph</small></div>
-          <div className="flow-step"><strong>Data</strong><br /><small>Postgres, pgvector, Redis</small></div>
-          <div className="flow-step"><strong>AI Ops</strong><br /><small>Langfuse, RAG, research</small></div>
-          <div className="flow-step"><strong>Deploy</strong><br /><small>Portable managed Kubernetes</small></div>
+          <div className="flow-step"><strong>Frontend</strong><br /><small>Next.js (native :3000)</small></div>
+          <div className="flow-step"><strong>API</strong><br /><small>FastAPI + DAG orchestrator</small></div>
+          <div className="flow-step"><strong>Knowledge</strong><br /><small>Seeded markdown RAG</small></div>
+          <div className="flow-step"><strong>Traces</strong><br /><small>Internal spans (Langfuse optional later)</small></div>
+          <div className="flow-step"><strong>Optional</strong><br /><small>Compose / k3d / Terraform docs</small></div>
         </div>
       </section>
     </PageShell>

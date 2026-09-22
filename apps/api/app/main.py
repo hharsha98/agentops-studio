@@ -69,7 +69,7 @@ def platform() -> PlatformSummary:
         knowledge_documents=len(knowledge_index.documents),
         mcp_tools=len(mcp_registry.list_tools()),
         runs=counts.get("runs", 0),
-        cloud_paths=["Docker Compose", "k3d", "AWS EKS", "GCP GKE"],
+        cloud_paths=["Native local", "Docker Compose", "k3d", "AWS EKS", "GCP GKE"],
         model_gateway=settings.model_name,
         public_demo_mode=settings.public_demo_mode,
         capabilities=[
