@@ -8,7 +8,7 @@ It is **not** Agent Fleet.
 |---|---|---|
 | Role | Studio / scaffold / hiring-manager demo lab | Live multi-agent ops product |
 | Repo | [hharsha98/agentops-studio](https://github.com/hharsha98/agentops-studio) | [hharsha98/agentfleet](https://github.com/hharsha98/agentfleet) |
-| Demo | Native Node + Python (Compose optional on Mac/local) | Contabo deployment at `https://agentfleet.169.58.185.43.sslip.io/` |
+| Demo | Native Node + Python. Public target `https://agentops.169.58.185.43.sslip.io/` (web :3010, API :8010). Compose optional. | Contabo deployment at `https://agentfleet.169.58.185.43.sslip.io/` (ports 8000/3002) |
 | Naming on CV / [Agentic Systems Studio](https://agentic-systems-studio.com/) | AgentOps Studio | Agent Fleet |
 
 Do **not** present third-party hosts (for example `agentfleet.pages.dev`) as owned by this project.
@@ -20,10 +20,25 @@ Do **not** present third-party hosts (for example `agentfleet.pages.dev`) as own
 - **MCP-style tool registry** (`knowledge_search`, `web_search`, sandbox Slack/Gmail/GitHub)
 - **Run traces** (spans for orchestrator / agents / tools / RAG / approvals)
 - Next.js UI wired to the API: Dashboard, Workflows, Runs, Knowledge, MCP, Traces
-- Pytest + `scripts/smoke.sh` for the **non-Docker** path
-- Optional Compose / k8s / Terraform scaffolding for Mac or other local machines that have Docker
+- `DEMO_PUBLIC` seeds an approval run and a finished run (with citations and traces) at API startup
+- Pytest, `scripts/smoke.sh` (dev), and `scripts/smoke-public.sh` (prod ports) — **no Docker**
+- Optional Compose / k8s / Terraform scaffolding for machines that have those tools
 
-## Quick demo (hiring manager path) — native, no Docker required
+## Public demo (Contabo) — native production, no Docker
+
+Ports are chosen so this app does not collide with Agent Fleet (`8000`/`3002`) or the RAG demo (`8402`).
+
+```bash
+bash scripts/prod-api.sh       # 0.0.0.0:8010  (no reload, one worker)
+bash scripts/prod-web.sh       # 0.0.0.0:3010  (next start, same-origin /api)
+bash scripts/smoke-public.sh
+```
+
+Caddy should serve `https://agentops.169.58.185.43.sslip.io/` and forward `/api/*` to port 8010. systemd units and the site snippet: [docs/deployment/contabo.md](docs/deployment/contabo.md) and [HANDOFF.md](HANDOFF.md).
+
+Open `/dashboard`, approve the seeded executive brief, then check Runs, Knowledge, MCP, and Traces.
+
+## Quick demo (local hot reload) — native, no Docker required
 
 Prerequisites: Node.js 22+, npm 10+, Python 3.12+ (with `python3-venv` / `ensurepip` available).
 
@@ -48,12 +63,13 @@ pip install -e ".[dev]"
 DEMO_DATA_DIR=../../demo-data uvicorn app.main:app --reload --port 8000
 ```
 
+The dev API also seeds showcase runs. The browser talks to same-origin `/api`, which the Next server proxies to `http://127.0.0.1:8000`.
+
 Then:
 
 1. Open http://localhost:3000/dashboard  
-2. Click **Start multi-agent run** (Executive daily brief)  
-3. Inspect **Runs**, **Knowledge**, **MCP**, and **Traces**  
-4. Approve the sandbox Slack action when the run reaches `approval`
+2. Approve the seeded executive brief, or click **Start multi-agent run**  
+3. Inspect **Runs**, **Knowledge**, **MCP**, and **Traces**
 
 Screenshots from this path: [docs/screenshots](docs/screenshots).
 
@@ -96,10 +112,11 @@ Agent Fleet remains the fuller fleets-at-scale product with its own live Contabo
 
 ## Deployment (free-stack first)
 
-1. **Native local** (primary demo path — no Docker).
-2. Optional Compose on a machine that has Docker.
-3. Optional k3d practice: [infra/k8s/local/README.md](infra/k8s/local/README.md)
-4. Optional Terraform blueprint READMEs: [infra/terraform/aws](infra/terraform/aws), [infra/terraform/gcp](infra/terraform/gcp)
+1. **Contabo public demo** — native prod scripts, Caddy, systemd: [docs/deployment/contabo.md](docs/deployment/contabo.md).
+2. **Native local hot reload** — `scripts/dev-api.sh` and `npm run dev:web`.
+3. Optional Compose on a machine that has Docker (host ports 3010/8010).
+4. Optional k3d practice: [infra/k8s/local/README.md](infra/k8s/local/README.md). Cluster-internal ports stay 3000/8000.
+5. Optional Terraform blueprint READMEs: [infra/terraform/aws](infra/terraform/aws), [infra/terraform/gcp](infra/terraform/gcp). No `.tf` files yet.
 
 No Cloudflare paid plan / R2 is required.
 

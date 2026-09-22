@@ -8,11 +8,14 @@
   "scripts": {
     "dev:web": "npm run dev -w apps/web",
     "dev:api": "bash scripts/dev-api.sh",
+    "start:api": "bash scripts/prod-api.sh",
+    "start:web": "bash scripts/prod-web.sh",
     "build:web": "npm run build -w apps/web",
     "lint:web": "npm run lint -w apps/web",
     "typecheck:web": "npm run typecheck -w apps/web",
     "test:api": "bash scripts/test-api.sh",
-    "smoke": "bash scripts/smoke.sh"
+    "smoke": "bash scripts/smoke.sh",
+    "smoke:public": "bash scripts/smoke-public.sh"
   },
   "overrides": {
     "postcss": "^8.5.16"

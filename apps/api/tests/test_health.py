@@ -39,8 +39,8 @@ def test_platform_summary_matches_portfolio_plan(client: TestClient) -> None:
     assert body["agents"] == 6
     assert body["workflows"] >= 4
     assert "Native local" in body["cloud_paths"]
-    assert "AWS EKS" in body["cloud_paths"]
-    assert "GCP GKE" in body["cloud_paths"]
+    assert "Contabo public demo" in body["cloud_paths"]
+    assert "Terraform blueprints" in body["cloud_paths"]
     assert "multi-agent orchestration" in body["capabilities"]
     assert "Agent Fleet" in body["complements"]
     assert "Contabo" in body["complements"]
@@ -104,3 +104,55 @@ def test_executive_brief_run_produces_traces_and_approval(client: TestClient) ->
 def test_unknown_workflow_returns_404(client: TestClient) -> None:
     response = client.post("/runs", json={"workflow_id": "does-not-exist"})
     assert response.status_code == 404
+
+
+def test_demo_public_seeds_approval_and_done_runs(client: TestClient) -> None:
+    health = client.get("/health")
+    assert health.status_code == 200
+    body = health.json()
+    assert body["demo_public"] is True
+    assert body["runs"] >= 2
+
+    runs = client.get("/runs").json()["runs"]
+    seeded = [run for run in runs if run["seeded"]]
+    assert any(run["status"] == "approval" and run["citations"] for run in seeded)
+    assert any(run["status"] == "done" and run["citations"] for run in seeded)
+
+    traces = client.get("/traces")
+    assert traces.status_code == 200
+    assert traces.json()["count"] >= 5
+
+
+def test_seed_is_idempotent(client: TestClient) -> None:
+    from app.seed import seed_public_demo
+
+    before = client.get("/health").json()["runs"]
+    assert seed_public_demo() == []
+    assert client.get("/health").json()["runs"] == before
+
+
+def test_cors_allows_public_studio_origin(client: TestClient) -> None:
+    origin = "https://agentops.169.58.185.43.sslip.io"
+    response = client.get("/health", headers={"Origin": origin})
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == origin
+
+
+def test_cors_allows_localhost_prod_port(client: TestClient) -> None:
+    origin = "http://127.0.0.1:3010"
+    response = client.get("/health", headers={"Origin": origin})
+    assert response.headers["access-control-allow-origin"] == origin
+
+
+def test_cors_hides_unlisted_origin(client: TestClient) -> None:
+    response = client.get("/health", headers={"Origin": "https://evil.example"})
+    assert "access-control-allow-origin" not in response.headers
+
+
+def test_platform_names_public_host_distinct_from_fleet(client: TestClient) -> None:
+    body = client.get("/platform").json()
+    assert body["public_host"] == "https://agentops.169.58.185.43.sslip.io"
+    assert "agentfleet" in body["distinct_from"]
+    assert body["demo_public"] is True
+    assert "agentops.169.58.185.43.sslip.io" in body["complements"]
+    assert "agentfleet.169.58.185.43.sslip.io" in body["complements"]

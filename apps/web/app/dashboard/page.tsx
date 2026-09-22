@@ -6,7 +6,7 @@ export default function DashboardPage() {
     <PageShell
       eyebrow="Live studio demo"
       title="Operations command center"
-      description="Start a multi-agent workflow against the local API. Runs exercise orchestration, RAG citations, MCP tools, and approval-gated sandbox actions."
+      description="A seeded executive brief is already waiting for approval, with citations and traces. Start another workflow to run orchestration, RAG, MCP tools, and the sandbox approval gate again."
     >
       <DemoConsole />
     </PageShell>

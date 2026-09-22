@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AgentOps Studio",
-  description: "A multi-agent workforce command center for business operations."
+  description: "AgentOps Studio public demo: multi-agent runs, RAG citations, MCP sandbox tools, and traces."
 };
 
 export default function RootLayout({

@@ -1,0 +1,20 @@
+[Unit]
+Description=AgentOps Studio API (public demo)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/agentops-studio
+# Install path is the git checkout. One worker; in-memory runs.
+Environment=PORT=8010
+Environment=DEMO_PUBLIC=true
+Environment=PUBLIC_DEMO_MODE=true
+Environment=FORCE_DETERMINISTIC=true
+Environment=DEMO_DATA_DIR=/opt/agentops-studio/demo-data
+ExecStart=/opt/agentops-studio/scripts/prod-api.sh
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=180
+
+[Install]
+WantedBy=multi-user.target

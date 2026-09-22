@@ -1,20 +1,26 @@
+import Link from "next/link";
 import { PageShell } from "@/components/page-shell";
 
 export default function ResearchPage() {
   return (
     <PageShell
       eyebrow="Deep web research"
-      title="Search, extract, cite, and brief"
-      description="SearXNG handles private search. Firecrawl extracts clean page content. Agents turn sources into cited business reports."
+      title="Web search is a sandbox tool, not a crawler farm."
+      description="Firecrawl is not running in this demo. Deep Research calls web_search. SearXNG is optional; without it the tool returns a deterministic fallback and the run still completes."
     >
       <div className="grid">
-        {["Search queries", "Extracted pages", "Cited findings", "Confidence notes", "Competitor reports", "Source audit"].map((item) => (
-          <article className="card" key={item}>
-            <small>Research workspace</small>
-            <h3>{item}</h3>
-            <p>Designed so teams can review evidence, not just final answers.</p>
-          </article>
-        ))}
+        <article className="card">
+          <small>Live</small>
+          <h3>Try web_search</h3>
+          <p>The MCP page invokes the same tool the research agent uses.</p>
+          <Link className="button primary" href="/mcp">Open MCP</Link>
+        </article>
+        <article className="card">
+          <small>Live</small>
+          <h3>Cited product memo</h3>
+          <p>Product research combines that fallback with RAG citations and does not wait for approval.</p>
+          <Link className="button" href="/workflows">Open workflows</Link>
+        </article>
       </div>
     </PageShell>
   );
