@@ -56,6 +56,8 @@ Then:
 3. Inspect **Runs**, **Knowledge**, **MCP**, and **Traces**  
 4. Approve the sandbox Slack action when the run reaches `approval`
 
+Screenshots from this path: [docs/screenshots](docs/screenshots).
+
 Smoke + tests (API must be running for smoke):
 
 ```bash
