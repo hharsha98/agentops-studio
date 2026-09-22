@@ -1,17 +1,11 @@
-# Portable Deployment Strategy
+# Multi-cloud strategy
 
-## Why Local First
+Prefer the free-stack Compose path first (see [docker-compose.md](./docker-compose.md)).
 
-Local Docker and local Kubernetes help separate application issues from infrastructure issues. This reduces infrastructure spend and makes the deployment path easier to operate.
+1. Build and test locally with Docker Compose.
+2. Practice Kubernetes locally with k3d using `infra/k8s`.
+3. Validate manifests before any managed cluster spend.
+4. Keep provider-specific infrastructure isolated in Terraform blueprints under `infra/terraform/`.
+5. Tear down temporary managed environments promptly — cost awareness is part of the portfolio story.
 
-## Managed Kubernetes Validation
-
-Managed Kubernetes is useful for production-style validation because it exercises real ingress, secrets, logs, autoscaling, storage, and managed service integrations. Temporary environments should be created with Terraform and destroyed when validation is complete.
-
-## Portable Hosting
-
-The application should stay portable across providers. Kubernetes manifests describe the app, while provider-specific Terraform modules describe the managed cluster, database, cache, storage, logging, and secrets.
-
-## Operational Focus
-
-The project is intentionally provider-portable. The operational focus is packaging services as containers, running them as deployments, exposing them with services and ingress, managing secrets, observing logs, and controlling cost.
+AgentOps Studio does **not** require Cloudflare paid services or R2 for the demo path.

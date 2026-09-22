@@ -1,6 +1,14 @@
-# Demo Data
+# Demo data
 
-This folder will hold replay runs, synthetic workflow inputs, benchmark scenarios, and safe public-demo artifacts.
+Fixtures that power the AgentOps Studio local demo.
 
-Public demo data must never include real secrets, private emails, private customer data, or real company data.
+## Layout
 
+- `knowledge/` — markdown sources indexed by the RAG layer at API startup
+- `workflows/` — optional replay metadata for documentation
+
+## Safety
+
+- Synthetic content only — no real customer data
+- Public demo mode keeps GitHub / Gmail / Slack tools sandboxed
+- Do not commit secrets; use `.env.example` for configuration templates

@@ -13,11 +13,14 @@ export function SiteNav() {
       <div className="nav-links">
         <Link href="/dashboard">Dashboard</Link>
         <Link href="/workflows">Workflows</Link>
-        <Link href="/builder">Builder</Link>
+        <Link href="/runs">Runs</Link>
+        <Link href="/knowledge">Knowledge</Link>
+        <Link href="/mcp">MCP</Link>
+        <Link href="/traces">Traces</Link>
         <Link href="/cloud">Deploy</Link>
       </div>
       <Link className="button primary" href="/dashboard">
-        View demo
+        Live demo
       </Link>
     </nav>
   );

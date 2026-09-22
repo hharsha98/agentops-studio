@@ -80,11 +80,12 @@ export default function HomePage() {
 
       <section className="hero agent-hero">
         <div className="hero-content">
-          <div className="eyebrow">Multi-agent orchestration console</div>
+          <div className="eyebrow">AgentOps Studio · portable multi-agent ops lab</div>
           <h1>Run agent workforces from goal to approved outcome.</h1>
           <p className="hero-copy">
-            AgentOps Studio coordinates specialist agents, RAG memory, MCP tool servers, approval gates,
-            Langfuse traces, benchmark checks, and Kubernetes-ready deployment from one operations workspace.
+            Coordinate specialist agents, RAG memory with citations, MCP-style tools, approval gates,
+            and run traces — then ship the same stack with Docker Compose or Kubernetes scaffolding.
+            Complements Agent Fleet; this is the studio lab, not the Contabo Fleet product.
           </p>
           <div className="hero-actions">
             <Link className="button primary" href="/dashboard">
