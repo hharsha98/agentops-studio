@@ -1,5 +1,5 @@
 export const cloudBadges = [
-  "LangGraph",
+  "Orchestration",
   "FastAPI",
   "Postgres/pgvector",
   "Redis",
@@ -115,18 +115,17 @@ export const techStack = [
   "Next.js 16",
   "React 19",
   "FastAPI",
-  "LangGraph",
+  "DAG Orchestrator",
   "Postgres",
   "pgvector",
   "Redis",
-  "Langfuse",
+  "RAG citations",
   "SearXNG",
-  "Firecrawl",
-  "MCP Protocol",
-  "Docker",
+  "MCP tool registry",
+  "Run traces",
+  "Docker Compose",
   "Kubernetes",
-  "Terraform",
-  "Helm"
+  "Terraform blueprints"
 ];
 
 export const workflowOutcomes = [
@@ -204,8 +203,8 @@ export const privateActions = [
 export const cloudTabs = [
   {
     name: "Local Docker",
-    summary: "Fast development mode with frontend, API, Postgres, Redis, Langfuse, SearXNG, and Firecrawl.",
-    proof: "Use for daily development, testing, and fast product iteration."
+    summary: "Fast development mode with frontend, API, Postgres, Redis, and optional SearXNG.",
+    proof: "Use for daily development, testing, and the hiring-manager demo path."
   },
   {
     name: "Local Kubernetes",
@@ -214,8 +213,8 @@ export const cloudTabs = [
   },
   {
     name: "Managed Kubernetes",
-    summary: "Production-style deployment path with Terraform, managed database, cache, object storage, secrets, ingress, and logs.",
-    proof: "Use for short public launch windows, customer demos, and production-readiness validation."
+    summary: "Production-style deployment path with Terraform blueprints, managed database, cache, secrets, ingress, and logs.",
+    proof: "Use for short public launch windows and production-readiness validation."
   },
   {
     name: "Portable Hosting",
@@ -297,7 +296,7 @@ export const deploymentProof = [
   {
     icon: "panel",
     title: "Local Docker",
-    text: "Daily development stack with web, API, Postgres, Redis, Langfuse, SearXNG, and Firecrawl."
+    text: "Daily development stack with web, API, Postgres, Redis, and optional SearXNG research."
   },
   {
     icon: "boxes",
@@ -307,7 +306,7 @@ export const deploymentProof = [
   {
     icon: "cloud",
     title: "Managed Kubernetes",
-    text: "Production-style cluster path with Terraform, managed database, cache, object storage, and centralized logs."
+    text: "Production-style cluster path with Terraform blueprints, managed database, cache, and centralized logs."
   },
   {
     icon: "cloud",

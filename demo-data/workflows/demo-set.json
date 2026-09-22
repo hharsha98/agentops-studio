@@ -1,0 +1,9 @@
+{
+  "demo_workflows": [
+    "executive-daily-brief",
+    "support-triage",
+    "product-research",
+    "compliance-review"
+  ],
+  "notes": "Workflow definitions live in the API. This file documents the hiring-manager demo set."
+}

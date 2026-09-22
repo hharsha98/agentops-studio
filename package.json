@@ -9,7 +9,9 @@
     "dev:web": "npm run dev -w apps/web",
     "build:web": "npm run build -w apps/web",
     "lint:web": "npm run lint -w apps/web",
-    "typecheck:web": "npm run typecheck -w apps/web"
+    "typecheck:web": "npm run typecheck -w apps/web",
+    "test:api": "cd apps/api && python3 -m pytest -q",
+    "smoke": "bash scripts/smoke.sh"
   },
   "overrides": {
     "postcss": "^8.5.16"

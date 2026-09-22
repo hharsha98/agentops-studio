@@ -1,92 +1,105 @@
 # AgentOps Studio
 
-AgentOps Studio is a multi-agent AI workforce platform for business operations. It is designed around business outcomes, operational visibility, Kubernetes-based deployment, and portability.
+**AgentOps Studio** is a portable multi-agent **operations lab** — orchestration, RAG with citations, an MCP-style tool registry, run traces, and Docker Compose / Kubernetes scaffolding you can demo locally.
 
-## What This Project Demonstrates
+It is **not** Agent Fleet.
 
-- Built locally with Docker and Kubernetes.
-- Supports managed Kubernetes deployment through infrastructure-as-code blueprints.
-- Portable across providers through reusable application manifests and provider-specific Terraform modules.
-- Demonstrates production deployment patterns without locking the product to one vendor.
+| | AgentOps Studio (this repo) | Agent Fleet (separate product) |
+|---|---|---|
+| Role | Studio / scaffold / hiring-manager demo lab | Live multi-agent ops product |
+| Repo | [hharsha98/agentops-studio](https://github.com/hharsha98/agentops-studio) | [hharsha98/agentfleet](https://github.com/hharsha98/agentfleet) |
+| Demo | `docker compose up` on your machine | Contabo deployment at `https://agentfleet.169.58.185.43.sslip.io/` |
+| Naming on CV / [Agentic Systems Studio](https://agentic-systems-studio.com/) | AgentOps Studio | Agent Fleet |
 
-## Product Vision
+Do **not** present third-party hosts (for example `agentfleet.pages.dev`) as owned by this project.
 
-AgentOps Studio is an operations command center where teams can run AI workforces for support, sales, marketing, finance, hiring, product research, engineering delivery, compliance, investor updates, and executive briefings.
+## What works today (demoable)
 
-The first implementation focuses on the product experience and deployment foundation:
+- Multi-agent **DAG orchestration** with specialist agents and approval gates
+- **RAG** over seeded `demo-data/knowledge` markdown (TF-IDF retrieval + citations)
+- **MCP-style tool registry** (`knowledge_search`, `web_search`, sandbox Slack/Gmail/GitHub)
+- **Run traces** (spans for orchestrator / agents / tools / RAG / approvals)
+- Next.js UI wired to the API: Dashboard, Workflows, Runs, Knowledge, MCP, Traces
+- Docker Compose path for web + API + Postgres + Redis (SearXNG optional profile)
+- Pytest coverage for health, platform, RAG, MCP, and an end-to-end run
 
-- Premium landing page.
-- Dashboard workspace.
-- Deployment page for Docker, local Kubernetes, managed Kubernetes, and portable infrastructure.
-- 30-agent catalog concept.
-- 10 business workflow outcomes.
-- Docker Compose foundation.
-- Local Kubernetes structure.
-- Terraform placeholders and deployment docs.
-- Learning log for engineering troubleshooting and operational lessons.
+## Quick demo (hiring manager path)
 
-## Planned Platform Capabilities
-
-- Streaming multi-agent chat.
-- Visual workflow builder.
-- Kanban execution board.
-- Runtime agent builder.
-- Document intelligence with RAG and citations.
-- Deep web research with SearXNG and Firecrawl.
-- MCP marketplace-style registry.
-- Langfuse observability.
-- Benchmark scorecard.
-- Cost and token tracking.
-- Private real actions through GitHub, Gmail, and Slack.
-
-## Local Development
-
-Prerequisites:
-
-- Node.js 22+
-- npm 10+
-- Python 3.12+
-- Docker Desktop
-- k3d for local Kubernetes practice
-
-Install JavaScript dependencies:
+### Option A — Docker Compose (recommended)
 
 ```bash
+cp .env.example .env
+docker compose up
+```
+
+- Web: http://localhost:3000/dashboard  
+- API: http://localhost:8000/health  
+- Open **Dashboard → Start multi-agent run** (Executive daily brief)  
+- Inspect **Runs**, **Knowledge**, **MCP**, and **Traces**
+
+Optional SearXNG research backend:
+
+```bash
+docker compose --profile research up
+```
+
+### Option B — Local processes
+
+```bash
+cp .env.example .env
 npm install
-```
 
-Run the web app:
-
-```bash
-npm run dev:web
-```
-
-Run the API locally after installing Python dependencies:
-
-```bash
+# API
 cd apps/api
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-uvicorn app.main:app --reload --port 8000
+DEMO_DATA_DIR=../../demo-data uvicorn app.main:app --reload --port 8000
+
+# Web (other terminal)
+npm run dev:web
 ```
 
-Run both with Docker Compose:
+Smoke the API:
 
 ```bash
-docker compose up --build
+npm run smoke
+# or: bash scripts/smoke.sh
 ```
 
-## Deployment Strategy
+API tests:
 
-1. Build and test locally with Docker Compose.
-2. Practice Kubernetes locally with k3d.
-3. Validate the Kubernetes manifests in a local cluster.
-4. Deploy to a managed Kubernetes environment when a public demo or production-style validation is needed.
-5. Keep provider-specific infrastructure isolated in Terraform so the application remains portable.
+```bash
+npm run test:api
+```
 
-The deployment strategy prioritizes portability, cost awareness, observable services, and clean teardown of temporary managed environments.
+## Product story
 
-## Learning Log
+AgentOps Studio is the place to **show the architecture** of multi-agent ops:
 
-The file `learning/engineering-troubleshooting-log.md` records useful engineering incidents while building this project. Each entry explains the symptom, root cause, fix, verification, and the lesson learned.
+1. Pick a business workflow (executive brief, support triage, product research, compliance).
+2. The orchestrator routes specialist agents.
+3. Knowledge Analyst retrieves cited chunks; Deep Research can call SearXNG (or a demo fallback).
+4. Tool Operator prepares sandbox drafts only — public demo never sends real mail/Slack/GitHub writes.
+5. Every step is recorded as a trace span for debugging and portfolio evidence.
+
+Agent Fleet remains the fuller fleets-at-scale product with its own live Contabo demo. Studio complements Fleet; it does not duplicate or rebrand it.
+
+## Deployment (free-stack first)
+
+See [docs/deployment/docker-compose.md](docs/deployment/docker-compose.md) for Compose runbooks.
+
+Optional (already scaffolded, not required for the demo):
+
+- Local Kubernetes: [infra/k8s/local/README.md](infra/k8s/local/README.md)
+- Terraform blueprints (docs only): [infra/terraform/aws](infra/terraform/aws), [infra/terraform/gcp](infra/terraform/gcp)
+
+No Cloudflare paid plan / R2 is required.
+
+## Architecture
+
+See [docs/architecture/overview.md](docs/architecture/overview.md).
+
+## Learning log
+
+`learning/engineering-troubleshooting-log.md` records engineering incidents while building this project.
