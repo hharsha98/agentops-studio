@@ -17,7 +17,8 @@ assert p["product"]=="studio", p
 assert "Agent Fleet" in p["complements"], p
 assert "Contabo" in p["complements"], p
 assert p["name"]=="AgentOps Studio", p
-print("platform product=studio; Fleet/Contabo distinction OK")
+assert p["llm"]["mode"] in {"deterministic", "omniroute"}, p["llm"]
+print("platform product=studio; Fleet/Contabo distinction OK; llm", p["llm"]["mode"])
 ' <<<"$PLATFORM_JSON"
 
 echo "==> Start executive daily brief"

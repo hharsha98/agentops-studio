@@ -1,27 +1,38 @@
 import Link from "next/link";
 import { Boxes } from "lucide-react";
 
+const LINKS = [
+  ["/dashboard", "Dashboard"],
+  ["/workflows", "Workflows"],
+  ["/runs", "Runs"],
+  ["/knowledge", "Knowledge"],
+  ["/mcp", "MCP"],
+  ["/traces", "Traces"],
+  ["/cloud", "Deploy"]
+] as const;
+
 export function SiteNav() {
   return (
-    <nav className="nav">
+    <header className="topbar">
       <Link className="brand" href="/">
         <span className="brand-mark">
-          <Boxes size={18} />
+          <Boxes size={16} />
         </span>
-        <span>AgentOps Studio</span>
+        <span>
+          AgentOps
+          <small>Studio</small>
+        </span>
       </Link>
-      <div className="nav-links">
-        <Link href="/dashboard">Dashboard</Link>
-        <Link href="/workflows">Workflows</Link>
-        <Link href="/runs">Runs</Link>
-        <Link href="/knowledge">Knowledge</Link>
-        <Link href="/mcp">MCP</Link>
-        <Link href="/traces">Traces</Link>
-        <Link href="/cloud">Deploy</Link>
-      </div>
+      <nav className="top-links" aria-label="Primary">
+        {LINKS.map(([href, label]) => (
+          <Link key={href} href={href}>
+            {label}
+          </Link>
+        ))}
+      </nav>
       <Link className="button primary" href="/dashboard">
-        Live demo
+        Open console
       </Link>
-    </nav>
+    </header>
   );
 }

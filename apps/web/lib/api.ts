@@ -26,6 +26,28 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export type LlmStatus = {
+  mode: string;
+  configured: boolean;
+  force_deterministic: boolean;
+  model: string;
+  base_host: string;
+  probe: string;
+  probe_detail: string;
+};
+
+export type HealthStatus = {
+  status: string;
+  service: string;
+  knowledge_documents: number;
+  mcp_tools: number;
+  runs: number;
+  demo_public: boolean;
+  public_demo_mode: boolean;
+  persistence: string;
+  llm: LlmStatus;
+};
+
 export type PlatformSummary = {
   name: string;
   product: string;
@@ -37,6 +59,8 @@ export type PlatformSummary = {
   runs: number;
   cloud_paths: string[];
   model_gateway: string;
+  llm: LlmStatus;
+  persistence: string;
   public_demo_mode: boolean;
   demo_public: boolean;
   public_host: string;
@@ -53,6 +77,22 @@ export type Workflow = {
   requires_approval: boolean;
 };
 
+export type Citation = {
+  source_id: string;
+  title: string;
+  excerpt: string;
+  score: number;
+};
+
+export type RunStep = {
+  agent: string;
+  role: string;
+  summary: string;
+  citations: Citation[];
+  tool_calls: string[];
+  artifact?: string | null;
+};
+
 export type RunRecord = {
   id: string;
   workflow_id: string;
@@ -61,16 +101,9 @@ export type RunRecord = {
   status: "backlog" | "running" | "approval" | "failed" | "done";
   created_at: string;
   updated_at: string;
-  steps: Array<{
-    agent: string;
-    role: string;
-    summary: string;
-    citations: Array<{ source_id: string; title: string; excerpt: string; score: number }>;
-    tool_calls: string[];
-    artifact?: string | null;
-  }>;
+  steps: RunStep[];
   artifact?: string | null;
-  citations: Array<{ source_id: string; title: string; excerpt: string; score: number }>;
+  citations: Citation[];
   error?: string | null;
   mode: string;
   seeded?: boolean;
@@ -99,15 +132,25 @@ export type KnowledgeDocument = {
   preview: string;
 };
 
+export type KnowledgeChunk = {
+  id: string;
+  document_id: string;
+  title: string;
+  text: string;
+  score: number;
+};
+
 export type McpTool = {
   name: string;
   description: string;
   category: string;
   sandbox: boolean;
   status: string;
+  input_schema?: Record<string, unknown>;
 };
 
 export const api = {
+  health: () => apiFetch<HealthStatus>("/health"),
   platform: () => apiFetch<PlatformSummary>("/platform"),
   workflows: () => apiFetch<{ workflows: Workflow[] }>("/workflows"),
   runs: () =>
@@ -118,29 +161,31 @@ export const api = {
   createRun: (workflow_id: string, goal?: string) =>
     apiFetch<RunRecord>("/runs", {
       method: "POST",
-      body: JSON.stringify({ workflow_id, goal })
+      body: JSON.stringify({ workflow_id, goal: goal?.trim() || undefined })
     }),
-  getRun: (id: string) =>
-    apiFetch<{ run: RunRecord; spans: TraceSpan[] }>(`/runs/${id}`),
-  approveRun: (id: string) =>
-    apiFetch<RunRecord>(`/runs/${id}/approve`, { method: "POST" }),
+  getRun: (id: string) => apiFetch<{ run: RunRecord; spans: TraceSpan[] }>(`/runs/${id}`),
+  approveRun: (id: string) => apiFetch<RunRecord>(`/runs/${id}/approve`, { method: "POST" }),
   traces: (runId?: string) =>
     apiFetch<{ spans: TraceSpan[]; count: number }>(
       runId ? `/traces?run_id=${encodeURIComponent(runId)}` : "/traces"
     ),
   knowledge: () =>
     apiFetch<{ documents: KnowledgeDocument[]; chunk_count: number }>("/knowledge"),
+  knowledgeDocument: (id: string) =>
+    apiFetch<{ document: KnowledgeDocument; chunks: KnowledgeChunk[] }>(
+      `/knowledge/${encodeURIComponent(id)}`
+    ),
   queryKnowledge: (query: string, top_k = 3) =>
     apiFetch<{
       query: string;
-      hits: Array<{ id: string; document_id: string; title: string; text: string; score: number }>;
+      hits: KnowledgeChunk[];
     }>("/knowledge/query", {
       method: "POST",
       body: JSON.stringify({ query, top_k })
     }),
   mcpTools: () => apiFetch<{ tools: McpTool[] }>("/mcp/tools"),
   invokeTool: (name: string, arguments_: Record<string, unknown> = {}) =>
-    apiFetch<{ ok: boolean; result?: unknown; error?: string }>(
+    apiFetch<{ ok: boolean; tool?: string; result?: unknown; error?: string }>(
       `/mcp/tools/${encodeURIComponent(name)}/invoke`,
       {
         method: "POST",

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="AgentOps Studio">
+  <rect width="32" height="32" rx="7" fill="#06241d"/>
+  <rect x="1" y="1" width="30" height="30" rx="6" fill="none" stroke="#3ee0c5" stroke-width="1.5"/>
+  <path d="M9 23V9h3.4l3.6 6.8L19.6 9H23v14h-2.8v-8.2L16.6 23h-1.2l-3.6-8.2V23H9z" fill="#3ee0c5"/>
+</svg>

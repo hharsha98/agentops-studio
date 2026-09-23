@@ -10,8 +10,13 @@ Environment=API_PORT=8010
 Environment=PORT=8010
 Environment=DEMO_PUBLIC=true
 Environment=PUBLIC_DEMO_MODE=true
-Environment=FORCE_DETERMINISTIC=true
+Environment=FORCE_DETERMINISTIC=false
+Environment=MODEL_BASE_URL=http://127.0.0.1:20128/v1
+Environment=MODEL_NAME=auto
+Environment=MODEL_TIMEOUT_SECONDS=25
+Environment=RUN_DB_PATH=/var/lib/agentops/studio.sqlite
 Environment=DEMO_DATA_DIR=/opt/agentops-studio/demo-data
+EnvironmentFile=-/etc/agentops-studio.env
 ExecStart=/opt/agentops-studio/scripts/prod-api.sh
 Restart=on-failure
 RestartSec=3

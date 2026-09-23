@@ -107,6 +107,16 @@ class McpTool(BaseModel):
     input_schema: dict[str, Any] = Field(default_factory=dict)
 
 
+class LlmStatus(BaseModel):
+    mode: str
+    configured: bool
+    force_deterministic: bool
+    model: str
+    base_host: str
+    probe: str
+    probe_detail: str
+
+
 class PlatformSummary(BaseModel):
     name: str
     product: str
@@ -118,6 +128,8 @@ class PlatformSummary(BaseModel):
     runs: int
     cloud_paths: list[str]
     model_gateway: str
+    llm: LlmStatus
+    persistence: str
     public_demo_mode: bool
     demo_public: bool
     public_host: str

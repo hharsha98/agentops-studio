@@ -10,7 +10,29 @@ That host is not Agent Fleet. Fleet stays at `https://agentfleet.169.58.185.43.s
 | Web (`scripts/prod-web.sh`) | `0.0.0.0` | **3010** |
 | Caddy | public 80/443 | proxies `/` → 3010 and `/api/*` → 8010 |
 
-No Docker is required. Run state is in memory, so the API is a **single uvicorn worker**. `DEMO_PUBLIC=true` (the default) executes two real workflows at startup: a finished product-research run and an executive brief waiting in `approval`, both with citations and traces.
+No Docker is required. `DEMO_PUBLIC=true` (the default) executes two template workflows at startup: a finished product-research run and an executive brief waiting in `approval`, both with citations and traces. Operator-started runs call OmniRoute when a key is configured. Run state is SQLite at `RUN_DB_PATH` so a restart keeps the board. The API is still a **single uvicorn worker**.
+
+## OmniRoute
+
+OmniRoute is already on this VM (`omniroute.service`, public vhost `https://omniroute.169.58.185.43.sslip.io/`). Studio calls the OpenAI-compatible API on localhost so runs do not depend on public TLS:
+
+```text
+MODEL_BASE_URL=http://127.0.0.1:20128/v1
+MODEL_NAME=auto
+```
+
+Create the key file (mode `0600`). Do not commit it and do not put the key in the unit file:
+
+```bash
+sudo install -m 600 /dev/null /etc/agentops-studio.env
+# Add one line, then save: MODEL_API_KEY=<omniroute api key>
+```
+
+`GET /health` then reports `llm.configured=true` and `llm.probe` of `ok`, `auth_failed`, `unreachable`, or `pending`. If the file is missing, runs still complete on templates and `llm.probe` is `not_configured`. That is the remaining operator step; the app does not crash.
+
+Seeded showcase runs never call the model, so API boot stays fast. A dashboard **Start multi-agent run** does. A gateway timeout or 401 marks that run `degraded` and keeps the template artifact.
+
+`bash scripts/smoke-public.sh` checks the `llm` object. Set `OMNIROUTE_LIVE=1` only on the VM after the key is installed; that starts one compliance-review run and expects mode `omniroute` or `degraded`.
 
 ## One-time setup
 
@@ -67,8 +89,13 @@ Environment=API_PORT=8010
 Environment=PORT=8010
 Environment=DEMO_PUBLIC=true
 Environment=PUBLIC_DEMO_MODE=true
-Environment=FORCE_DETERMINISTIC=true
+Environment=FORCE_DETERMINISTIC=false
+Environment=MODEL_BASE_URL=http://127.0.0.1:20128/v1
+Environment=MODEL_NAME=auto
+Environment=MODEL_TIMEOUT_SECONDS=25
+Environment=RUN_DB_PATH=/var/lib/agentops/studio.sqlite
 Environment=DEMO_DATA_DIR=/opt/agentops-studio/demo-data
+EnvironmentFile=-/etc/agentops-studio.env
 ExecStart=/opt/agentops-studio/scripts/prod-api.sh
 Restart=on-failure
 RestartSec=3
@@ -161,9 +188,10 @@ Same-origin `/api` is the default and does not need that rebuild.
 
 ## What a visitor does
 
-1. Open `/dashboard`. The seeded executive brief is already on screen, with citations.
-2. Choose **Approve sandbox action**. Status becomes `done`. The Slack step is sandbox-only.
-3. Open **Traces** for the spans, **Knowledge** for the refund-policy hits, **MCP** to invoke `knowledge_search`, **Runs** for the board, **Workflows** to start another DAG.
+1. Open `/`. Every tile is a link into the console. The status strip reads `/api/health`.
+2. Open `/dashboard`. The seeded executive brief is in the approval queue, with citations.
+3. Choose **Approve** (sandbox Slack only) or **Start multi-agent run**.
+4. Open the run from the board (`/runs`, then `/runs/{id}`), **Knowledge** (select a document or retrieve), **MCP** (edit JSON and invoke), and **Traces** (filter by run).
 
 ## Verify
 
@@ -172,7 +200,7 @@ bash scripts/smoke-public.sh
 npm run test:api
 ```
 
-`smoke-public.sh` checks wildcard binds, `/health`, the web `/api` proxy, CORS for the sslip.io origin, seeded runs, every nav route, a new executive brief through approve, RAG, and an MCP invoke.
+`smoke-public.sh` checks wildcard binds, `/health` including the `llm` object, the web `/api` proxy, CORS for the sslip.io origin, seeded runs, every nav route, a new executive brief through approve, RAG, a knowledge document, and an MCP invoke. It does not call OmniRoute unless `OMNIROUTE_LIVE=1`.
 
 ## Local dev ports stay different
 
