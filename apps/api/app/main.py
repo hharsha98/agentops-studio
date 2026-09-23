@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
+from .llm import llm_gateway
 from .mcp import mcp_registry
 from .models import (
     CreateRunRequest,
@@ -27,6 +28,7 @@ def _bootstrap_knowledge() -> None:
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     _bootstrap_knowledge()
+    llm_gateway.start_probe()
     if settings.demo_public:
         seeded = seed_public_demo()
         if seeded:
@@ -56,6 +58,8 @@ def health() -> dict[str, object]:
         "runs": store.counts().get("runs", 0),
         "demo_public": settings.demo_public,
         "public_demo_mode": settings.public_demo_mode,
+        "persistence": store.persistence(),
+        "llm": llm_gateway.status(),
     }
 
 
@@ -83,7 +87,9 @@ def platform() -> PlatformSummary:
             "k3d docs",
             "Terraform blueprints",
         ],
-        model_gateway=settings.model_name,
+        model_gateway=str(llm_gateway.status()["base_host"]),
+        llm=llm_gateway.status(),
+        persistence=store.persistence(),
         public_demo_mode=settings.public_demo_mode,
         demo_public=settings.demo_public,
         public_host="https://agentops.169.58.185.43.sslip.io",
@@ -94,6 +100,7 @@ def platform() -> PlatformSummary:
             "MCP tool registry",
             "run traces",
             "approval gates",
+            "omniroute gateway",
         ],
     )
 
@@ -156,6 +163,18 @@ def list_knowledge() -> dict[str, object]:
     return {
         "documents": [d.model_dump() for d in knowledge_index.documents],
         "chunk_count": len(knowledge_index.chunks),
+    }
+
+
+@app.get("/knowledge/{document_id}")
+def get_knowledge_document(document_id: str) -> dict[str, object]:
+    document = next((doc for doc in knowledge_index.documents if doc.id == document_id), None)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    chunks = [chunk for chunk in knowledge_index.chunks if chunk.document_id == document_id]
+    return {
+        "document": document.model_dump(),
+        "chunks": [chunk.model_dump() for chunk in chunks],
     }
 
 

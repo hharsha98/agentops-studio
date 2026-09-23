@@ -30,7 +30,7 @@ def seed_public_demo() -> list[str]:
 
     seeded_ids: list[str] = []
     for workflow_id, expected in SEED_WORKFLOWS:
-        run = engine.start_run(workflow_id)
+        run = engine.start_run(workflow_id, deterministic=True)
         if run.status != expected:
             raise RuntimeError(
                 f"DEMO_PUBLIC seed for {workflow_id} expected {expected.value}, "

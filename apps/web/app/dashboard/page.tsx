@@ -4,9 +4,9 @@ import { DemoConsole } from "@/components/demo-console";
 export default function DashboardPage() {
   return (
     <PageShell
-      eyebrow="Live studio demo"
-      title="Operations command center"
-      description="A seeded executive brief is already waiting for approval, with citations and traces. Start another workflow to run orchestration, RAG, MCP tools, and the sandbox approval gate again."
+      eyebrow="Console"
+      title="Operations console"
+      description="Start a run, approve what is waiting, and open the artifact. Seeded showcase runs stay on templates so the first screen is immediate."
     >
       <DemoConsole />
     </PageShell>

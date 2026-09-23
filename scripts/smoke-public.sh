@@ -52,7 +52,13 @@ assert h["service"]=="agentops-api", h
 assert h["demo_public"] is True, h
 assert h["knowledge_documents"]>=4, h
 assert h["runs"]>=2, h
-print("health demo_public runs=", h["runs"], sep="")
+assert h["persistence"] in {"memory", "sqlite"}, h
+llm=h["llm"]
+assert llm["mode"] in {"deterministic", "omniroute"}, llm
+assert llm["probe"] in {"skipped", "ok", "auth_failed", "unreachable", "not_configured", "pending"}, llm
+assert llm["base_host"], llm
+assert "Bearer" not in str(llm)
+print("health demo_public runs=", h["runs"], " llm=", llm["mode"], "/", llm["probe"], sep="")
 ' "$HEALTH"
 
 echo "==> Same-origin proxy ${WEB_BASE}/api/health"
@@ -106,16 +112,17 @@ import sys, urllib.request
 base = sys.argv[1].rstrip("/")
 pages = {
     "/": "AgentOps Studio",
-    "/dashboard": "Operations command center",
-    "/workflows": "Outcome-oriented multi-agent runs",
-    "/runs": "Track every agent run",
-    "/knowledge": "Company knowledge",
-    "/mcp": "MCP registry",
-    "/traces": "Trace every agent step",
-    "/cloud": "Contabo public demo",
-    "/builder": "not part of this demo",
-    "/benchmarks": "not running",
-    "/research": "not running",
+    "/dashboard": "Operations console",
+    "/workflows": "Outcome workflows",
+    "/runs": "Run board",
+    "/knowledge": "Knowledge base",
+    "/mcp": "Tool registry",
+    "/traces": "Trace spans",
+    "/cloud": "Contabo host",
+    "/builder": "Compose a run",
+    "/benchmarks": "Run scorecards",
+    "/research": "Web research",
+    "/agents": "Specialist roster",
 }
 for path, needle in pages.items():
     with urllib.request.urlopen(base + path, timeout=20) as response:
@@ -199,6 +206,15 @@ assert h and "refund" in h[0]["text"].lower(), h[0]
 print("rag", h[0]["title"])
 ' "$RAG_JSON"
 
+echo "==> Knowledge document detail"
+DOC_ID=$(curl -fsS "$API_BASE/knowledge" | python3 -c 'import json,sys; print(json.load(sys.stdin)["documents"][0]["id"])')
+curl -fsS "$API_BASE/knowledge/$DOC_ID" | python3 -c '
+import json,sys
+body=json.load(sys.stdin)
+assert body["chunks"], body
+print("doc", body["document"]["id"], "chunks", len(body["chunks"]))
+'
+
 echo "==> MCP list + invoke through the proxy"
 MCP_JSON=$(curl -fsS "$WEB_BASE/api/mcp/tools")
 python3 -c '
@@ -218,3 +234,25 @@ print("invoke hits", len(b["result"]["hits"]))
 ' "$INVOKE_JSON"
 
 echo "Smoke public OK — run id $RUN_ID"
+
+if [[ "${OMNIROUTE_LIVE:-0}" == "1" ]]; then
+  echo "==> Optional live OmniRoute run"
+  python3 -c '
+import json,sys,urllib.request
+health=json.load(urllib.request.urlopen(sys.argv[1]))
+llm=health["llm"]
+if not llm.get("configured"):
+    raise SystemExit("OMNIROUTE_LIVE=1 but llm.configured is false ("+llm.get("probe","")+")")
+print("probe", llm.get("probe"), llm.get("base_host"))
+' "$API_BASE/health"
+  LIVE_JSON=$(curl -fsS -X POST "$API_BASE/runs" \
+    -H 'Content-Type: application/json' \
+    -d '{"workflow_id":"compliance-review","goal":"Reply with a one-sentence policy risk note."}')
+  python3 -c '
+import json,sys
+r=json.loads(sys.argv[1])
+assert r["mode"] in {"omniroute", "degraded"}, r.get("mode")
+assert r["artifact"], r
+print("live mode", r["mode"])
+' "$LIVE_JSON"
+fi

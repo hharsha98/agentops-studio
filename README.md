@@ -13,13 +13,15 @@ It is **not** Agent Fleet.
 
 Do **not** present third-party hosts (for example `agentfleet.pages.dev`) as owned by this project.
 
-## What works today (demoable)
+## What works today
 
 - Multi-agent **orchestration** with specialist agents and approval gates
-- **RAG** over seeded `demo-data/knowledge` markdown (TF-IDF retrieval + citations)
-- **MCP-style tool registry** (`knowledge_search`, `web_search`, sandbox Slack/Gmail/GitHub)
-- **Run traces** (spans for orchestrator / agents / tools / RAG / approvals)
-- Next.js UI wired to the API: Dashboard, Workflows, Runs, Knowledge, MCP, Traces
+- **OmniRoute** chat completions for operator-started runs when `MODEL_API_KEY` is set and `FORCE_DETERMINISTIC=false` (Contabo: `http://127.0.0.1:20128/v1`). Seeded runs and keyless hosts stay on templates.
+- **RAG** over seeded `demo-data/knowledge` markdown (TF-IDF retrieval + citations, per-document reads)
+- **MCP-style tool registry** (`knowledge_search`, `web_search`, sandbox Slack/Gmail/GitHub) with editable invoke arguments
+- **Run traces** (spans for orchestrator / agents / tools / RAG / model / approvals) and a run detail page
+- Next.js operations console: Dashboard, Workflows, Runs, Knowledge, MCP, Traces, Agents, Builder, Research, Scorecards, Deploy
+- Optional SQLite history via `RUN_DB_PATH` (the Contabo unit sets `/var/lib/agentops/studio.sqlite`)
 - `DEMO_PUBLIC` seeds an approval run and a finished run (with citations and traces) at API startup
 - Pytest, `scripts/smoke.sh` (dev), and `scripts/smoke-public.sh` (prod ports) — **no Docker**
 - Optional Compose / k8s / Terraform scaffolding for machines that have those tools
@@ -36,7 +38,7 @@ bash scripts/smoke-public.sh
 
 Caddy should serve `https://agentops.169.58.185.43.sslip.io/` and forward `/api/*` to port 8010. systemd units and the site snippet: [docs/deployment/contabo.md](docs/deployment/contabo.md) and [HANDOFF.md](HANDOFF.md).
 
-Open `/dashboard`, approve the seeded executive brief, then check Runs, Knowledge, MCP, and Traces.
+Open `/dashboard`, approve the seeded executive brief or start a run, then check Runs, Knowledge, MCP, and Traces. If `/health` shows `llm.probe=not_configured`, the host still has no OmniRoute key in `/etc/agentops-studio.env`.
 
 ## Quick demo (local hot reload) — native, no Docker required
 
@@ -103,10 +105,10 @@ See [docs/deployment/docker-compose.md](docs/deployment/docker-compose.md).
 AgentOps Studio is the place to **show the architecture** of multi-agent ops:
 
 1. Pick a business workflow (executive brief, support triage, product research, compliance).
-2. The orchestrator routes specialist agents.
+2. The orchestrator routes specialist agents. With an OmniRoute key, those steps are rewritten from the tool evidence; otherwise the templates stand.
 3. Knowledge Analyst retrieves cited chunks; Deep Research can call SearXNG (or a demo fallback).
-4. Tool Operator prepares sandbox drafts only — public demo never sends real mail/Slack/GitHub writes.
-5. Every step is recorded as a trace span for debugging and portfolio evidence.
+4. Tool Operator prepares sandbox drafts only — the public host never sends real mail/Slack/GitHub writes.
+5. Every step is recorded as a trace span, including model latency when OmniRoute answers.
 
 Agent Fleet remains the fuller fleets-at-scale product with its own live Contabo demo. Studio complements Fleet; it does not duplicate or rebrand it.
 

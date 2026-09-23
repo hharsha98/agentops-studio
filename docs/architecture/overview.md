@@ -11,13 +11,15 @@ AgentOps Studio is split into clear units:
 
 ## Runtime flow (implemented)
 
-1. With `DEMO_PUBLIC=true` (default), startup already executed a finished product-research run and an executive brief sitting in `approval`. A visitor can also start a workflow from the Dashboard or Workflows page.
+1. With `DEMO_PUBLIC=true` (default), startup executes a finished product-research run and an executive brief sitting in `approval`. Those seeded runs stay on templates so boot does not wait on a model. A visitor can also start a workflow from the Dashboard, Workflows, or Builder page.
 2. `POST /runs` creates a run and the orchestration engine executes a specialist agent DAG.
 3. **Knowledge Analyst** calls `knowledge_search` (MCP) → RAG index over `demo-data/knowledge`.
 4. **Deep Research** calls `web_search` → SearXNG when available, otherwise a demo fallback.
-5. **Compliance / Tool Operator** produce a cited artifact; risky external actions stay sandboxed.
-6. Spans are stored for every orchestrator / agent / tool / RAG / approval step (`GET /traces`).
-7. Workflows with `requires_approval=true` pause in `approval` until `POST /runs/{id}/approve`.
+5. When `MODEL_API_KEY` is set and `FORCE_DETERMINISTIC` is false, each specialist step is rewritten by OmniRoute (`POST {MODEL_BASE_URL}/chat/completions`, default model `auto`). Citations still come from the retriever. If the gateway fails, the step keeps its template and the run mode is `degraded`.
+6. **Compliance / Tool Operator** produce a cited artifact; risky external actions stay sandboxed.
+7. Spans are stored for every orchestrator / agent / tool / RAG / model / approval step (`GET /traces`).
+8. Workflows with `requires_approval=true` pause in `approval` until `POST /runs/{id}/approve`.
+9. Runs live in memory unless `RUN_DB_PATH` points at a SQLite file (the Contabo unit does).
 
 ## Studio vs Fleet
 
@@ -26,7 +28,8 @@ AgentOps Studio is split into clear units:
 
 ## Honest capability notes
 
-- Orchestration is a deterministic studio DAG runner (no paid LLM required for the demo path).
-- RAG uses chunked markdown + TF-IDF style scoring; Compose includes Postgres/pgvector for future vector upgrades.
-- MCP is an in-process tool registry with uniform invoke schemas (studio sandbox), not a fleet of remote MCP servers.
-- Observability is first-class **internal traces**; Langfuse remains optional future export.
+- Operator-started runs call OmniRoute when `MODEL_API_KEY` is set and `FORCE_DETERMINISTIC` is false. Seeded showcase runs stay deterministic. Without a key, every run stays on templates and `/health` reports `llm.probe=not_configured`.
+- RAG uses chunked markdown + TF-IDF style scoring. Compose includes Postgres/pgvector as an optional profile; the native path does not require it.
+- MCP is an in-process tool registry. Slack/Gmail/GitHub writes stay sandboxed.
+- Observability is internal trace spans, including `kind=model` when OmniRoute is called. Langfuse is not required.
+- Run history is SQLite only when `RUN_DB_PATH` is set. The API stays a single worker.

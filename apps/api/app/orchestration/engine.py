@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
+from ..llm import LlmCompletion, llm_gateway
 from ..mcp import mcp_registry
 from ..models import (
     AgentStepResult,
@@ -49,14 +50,49 @@ def _span(
     return span
 
 
-class OrchestrationEngine:
-    """Deterministic multi-agent DAG runner for the studio demo path.
+_SYSTEM = {
+    "orchestrator": (
+        "You are the AgentOps Studio orchestrator. In a short paragraph, state the plan "
+        "for the operator goal. Do not invent facts, citations, or tool results."
+    ),
+    "knowledge-analyst": (
+        "You are the knowledge analyst. Summarize only the retrieved excerpts. Name the "
+        "document titles. If nothing was retrieved, say so. Do not add sources."
+    ),
+    "deep-research": (
+        "You are the research agent. Summarize only the web results provided, including "
+        "titles. Do not add sources that are not in the evidence."
+    ),
+    "compliance-reviewer": (
+        "You are the compliance reviewer. State residual risk as low or medium and why, "
+        "using only the policy excerpts. External sends stay sandboxed until approval."
+    ),
+    "tool-operator": (
+        "You are the tool operator. Write the markdown brief the operator will approve. "
+        "Use only the knowledge, research, and compliance notes provided. End by stating "
+        "that Slack, Gmail, and GitHub actions stay sandboxed until a human approves."
+    ),
+    "workflow-evaluator": (
+        "You are the workflow evaluator. Write a short scorecard for completeness, "
+        "citations, and sandbox safety, then a concise memo from the evidence only."
+    ),
+}
 
-    Agents call the MCP tool registry and RAG index. Optional live model
-    enrichment is skipped unless configured — hiring-manager demos work offline.
+
+class OrchestrationEngine:
+    """Specialist DAG runner. Tools and RAG always run.
+
+    OmniRoute rewrites step summaries when configured. Seeded showcase runs
+    stay on templates so API boot does not wait on the model gateway.
     """
 
-    def start_run(self, workflow_id: str, goal: str | None = None) -> RunRecord:
+    def start_run(
+        self,
+        workflow_id: str,
+        goal: str | None = None,
+        *,
+        deterministic: bool = False,
+    ) -> RunRecord:
         workflow = get_workflow(workflow_id)
         if workflow is None:
             raise ValueError(f"Unknown workflow: {workflow_id}")
@@ -73,8 +109,9 @@ class OrchestrationEngine:
             mode="deterministic",
         )
         store.upsert_run(run)
+        allow_llm = (not deterministic) and llm_gateway.configured()
         try:
-            return self._execute(run, workflow)
+            return self._execute(run, workflow, allow_llm=allow_llm)
         except Exception as exc:  # noqa: BLE001
             run.status = RunStatus.failed
             run.error = str(exc)
@@ -89,7 +126,13 @@ class OrchestrationEngine:
             )
             return run
 
-    def _execute(self, run: RunRecord, workflow: WorkflowDefinition) -> RunRecord:
+    def _execute(
+        self,
+        run: RunRecord,
+        workflow: WorkflowDefinition,
+        *,
+        allow_llm: bool,
+    ) -> RunRecord:
         root = _span(
             run.id,
             "orchestrator.plan",
@@ -101,9 +144,17 @@ class OrchestrationEngine:
         steps: list[AgentStepResult] = []
         citations: list[Citation] = []
         context: dict[str, Any] = {"goal": run.goal}
+        stats = {"ok": 0, "fail": 0}
 
         for agent in workflow.agents:
-            step = self._run_agent(run, agent, context, parent_id=root.id)
+            step = self._run_agent(
+                run,
+                agent,
+                context,
+                parent_id=root.id,
+                allow_llm=allow_llm,
+                stats=stats,
+            )
             steps.append(step)
             citations.extend(step.citations)
             context[agent] = step.summary
@@ -119,6 +170,12 @@ class OrchestrationEngine:
         run.citations = list(unique.values())
         run.artifact = str(context.get("artifact") or steps[-1].summary)
         run.updated_at = utcnow()
+        if stats["ok"]:
+            run.mode = "omniroute"
+        elif stats["fail"]:
+            run.mode = "degraded"
+        else:
+            run.mode = "deterministic"
 
         if workflow.requires_approval:
             run.status = RunStatus.approval
@@ -177,6 +234,63 @@ class OrchestrationEngine:
         return run
 
     def _run_agent(
+        self,
+        run: RunRecord,
+        agent: str,
+        context: dict[str, Any],
+        *,
+        parent_id: str,
+        allow_llm: bool,
+        stats: dict[str, int],
+    ) -> AgentStepResult:
+        step = self._run_agent_template(run, agent, context, parent_id=parent_id)
+        if not allow_llm:
+            return step
+        evidence = (
+            f"Workflow: {run.workflow_title}\nGoal: {run.goal}\n"
+            f"Agent: {step.agent} ({step.role})\n\nEvidence:\n{step.summary}"
+        )
+        if step.artifact:
+            evidence += f"\n\nDraft artifact:\n{step.artifact}"
+        result = llm_gateway.complete(
+            system=_SYSTEM.get(agent, _SYSTEM["orchestrator"]),
+            user=evidence,
+        )
+        self._record_model_span(run.id, agent, parent_id, result)
+        if result.ok and result.text.strip():
+            stats["ok"] += 1
+            text = result.text.strip()
+            updates: dict[str, Any] = {"summary": text}
+            if step.artifact is not None:
+                updates["artifact"] = text
+            return step.model_copy(update=updates)
+        stats["fail"] += 1
+        return step
+
+    def _record_model_span(
+        self,
+        run_id: str,
+        agent: str,
+        parent_id: str,
+        result: LlmCompletion,
+    ) -> None:
+        _span(
+            run_id,
+            f"model.{agent}",
+            SpanKind.model,
+            parent_id=parent_id,
+            status="ok" if result.ok else "error",
+            input_data={"model": result.model, "host": result.base_host},
+            output_data={
+                "preview": result.text[:400],
+                "error": result.error,
+                "latency_ms": result.latency_ms,
+                "prompt_tokens": result.prompt_tokens,
+                "completion_tokens": result.completion_tokens,
+            },
+        )
+
+    def _run_agent_template(
         self,
         run: RunRecord,
         agent: str,

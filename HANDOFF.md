@@ -61,8 +61,13 @@ Environment=API_PORT=8010
 Environment=PORT=8010
 Environment=DEMO_PUBLIC=true
 Environment=PUBLIC_DEMO_MODE=true
-Environment=FORCE_DETERMINISTIC=true
+Environment=FORCE_DETERMINISTIC=false
+Environment=MODEL_BASE_URL=http://127.0.0.1:20128/v1
+Environment=MODEL_NAME=auto
+Environment=MODEL_TIMEOUT_SECONDS=25
+Environment=RUN_DB_PATH=/var/lib/agentops/studio.sqlite
 Environment=DEMO_DATA_DIR=/opt/agentops-studio/demo-data
+EnvironmentFile=-/etc/agentops-studio.env
 ExecStart=/opt/agentops-studio/scripts/prod-api.sh
 Restart=on-failure
 RestartSec=3
@@ -148,29 +153,30 @@ bash scripts/smoke.sh
 
 ## Honest gaps
 
-- Orchestration is deterministic studio mode (no paid LLM required).
+- Real OmniRoute completions need `MODEL_API_KEY` in `/etc/agentops-studio.env` on the VM. This repo does not contain a key. Without it, `/health` reports `llm.probe=not_configured` and operator runs stay on templates (`mode=deterministic`). With a bad key, runs finish as `degraded`.
+- Seeded showcase runs are always templates, even when the key is set, so process start does not fan out into the gateway.
 - RAG is TF-IDF over `demo-data/knowledge`, not pgvector.
 - MCP is an in-process sandbox registry, not remote MCP servers. Slack/Gmail/GitHub writes are not sent.
-- Langfuse and Firecrawl are not running. Traces are internal spans.
+- Langfuse and Firecrawl are not running. Traces are internal spans, plus `kind=model` when OmniRoute answers.
 - Terraform is README-only (no `.tf`). k3d manifests are scaffolding; keep API replicas at 1.
-- `/builder`, `/benchmarks`, and `/research` explain what is not running and link to the live pages.
-- `/cloud` does not deploy anything.
+- `/cloud` documents the host. It does not provision machines.
+- This workspace cannot restart `agentops-api.service` on Contabo. Pull the branch on the VM, install the env file, then restart the units (`FORCE_WEB_BUILD=1` for the web unit).
 
 ## Verification
 
-Cursor cloud VM, native Node + Python, no Docker — 2026-09-22.
+Local production servers on this branch (`scripts/prod-api.sh`, `scripts/prod-web.sh`), 2026-09-23. No OmniRoute key was present in the environment.
 
 | Check | Result |
 |---|---|
-| `npm run test:api` | **PASS** — 12 passed |
+| `npm run test:api` | **PASS** — 25 passed |
 | `npm run lint:web` / `npm run typecheck:web` | **PASS** |
-| `bash scripts/smoke-public.sh` | **PASS** — wildcard bind 8010/3010, `/api` proxy, CORS for the Studio sslip.io origin, seeded approval + done runs, nav HTML 200, executive brief → approve, RAG refund hit, MCP invoke |
-| Browser: dashboard seed → approve → traces | **PASS** — seeded executive brief showed citations; approve moved it to `done`; Traces listed `approval.granted` and sandbox `tool.slack_post` |
-| Browser: Knowledge, MCP, Workflows, Runs | **PASS** — refund-policy hit, `knowledge_search` invoke, four Run buttons, Kanban approval + done |
-| Nav below 1080px | **PASS** — links stay visible (they used to be `display: none`) |
+| `bash scripts/smoke-public.sh` | **PASS** — wildcard bind 8010/3010, `/api` proxy, CORS, `llm.mode=deterministic` / `probe=not_configured`, seeded approval + done runs, nav HTML 200, executive brief → approve, RAG, knowledge document, MCP invoke |
+| Headless Chrome walk | **PASS** — home tile → dashboard, start run, open run, approve to done, workflows, run board, knowledge document, MCP invoke `ok: true`, traces, mobile nav |
+| Live OmniRoute completion | **Not run** — `MODEL_API_KEY` is empty here and on the probed public host (`/v1/models` returns 401). Contabo needs `/etc/agentops-studio.env`, then `OMNIROUTE_LIVE=1 bash scripts/smoke-public.sh`. |
 
-Re-run on the Contabo host after systemd + Caddy:
+Re-run on the Contabo host after pulling this branch, installing the env file, and restarting the units:
 
 ```bash
+FORCE_WEB_BUILD=1 sudo systemctl restart agentops-api.service agentops-web.service
 bash scripts/smoke-public.sh
 ```
